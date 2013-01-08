@@ -65,7 +65,7 @@ public class SQLiteFeatureIterator implements IFeatureIterator {
 	private ResultSetMetaData metaData = null;
 	ResultSet rs;
 	Statement st;
-	String strAux;
+	String sql;
 	IGeometry geom;
 	int numColumns;
 	Value[] columnValues;
@@ -77,9 +77,8 @@ public class SQLiteFeatureIterator implements IFeatureIterator {
 	int[] columnIndexes;
 	int numReg = 0;
 	int idFieldID = -1;
-	String cursorName;
 
-	public SQLiteFeatureIterator(Connection conn, String cursorName, String sql)
+	public SQLiteFeatureIterator(Connection conn, String sql)
 			throws SQLException {
 
 		st = conn.createStatement();
@@ -91,12 +90,8 @@ public class SQLiteFeatureIterator implements IFeatureIterator {
 			st.execute("BEGIN");
 		}
 
-		st.execute("declare " + cursorName + " binary cursor for " + sql);
-
-		rs = st.executeQuery("fetch forward " + FETCH_SIZE + " in "
-				+ cursorName);
-
-		this.cursorName = cursorName;
+		rs = st.executeQuery(sql + " LIMIT " + FETCH_SIZE + ";");
+		this.sql = sql;
 		numColumns = rs.getMetaData().getColumnCount();
 		metaData = rs.getMetaData();
 		numReg = 0;
@@ -107,8 +102,7 @@ public class SQLiteFeatureIterator implements IFeatureIterator {
 		try {
 			if (numReg > 0)
 				if ((numReg % FETCH_SIZE) == 0) {
-					rs = st.executeQuery("fetch forward " + FETCH_SIZE + " in "
-							+ cursorName);
+					rs = st.executeQuery(sql + " LIMIT " + FETCH_SIZE + " OFFSET " + numReg + ";");
 				}
 			if (rs.next())
 				return true;
@@ -128,7 +122,7 @@ public class SQLiteFeatureIterator implements IFeatureIterator {
 			data = rs.getBytes(1);
 			geom = parser.parse(data);
 			for (int fieldId = 2; fieldId <= numColumns; fieldId++) {
-				Value val = PostGisDriver.getFieldValue(rs, fieldId);
+				Value val = SQLiteDriver.getFieldValue(rs, fieldId);
 				columnValues[columnIndexes[fieldId - 2]] = val;
 			}
 

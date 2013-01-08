@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
+import java.util.ArrayList;
 
 import org.apache.log4j.Logger;
 import org.sqlite.SQLiteConfig;
@@ -28,11 +29,14 @@ import com.iver.cit.gvsig.fmap.drivers.DBException;
 import com.iver.cit.gvsig.fmap.drivers.DBLayerDefinition;
 import com.iver.cit.gvsig.fmap.drivers.DefaultJDBCDriver;
 import com.iver.cit.gvsig.fmap.drivers.DriverAttributes;
+import com.iver.cit.gvsig.fmap.drivers.FieldDescription;
 import com.iver.cit.gvsig.fmap.drivers.IConnection;
 import com.iver.cit.gvsig.fmap.drivers.IFeatureIterator;
 import com.iver.cit.gvsig.fmap.drivers.WKBParser3;
 import com.iver.cit.gvsig.fmap.drivers.XTypes;
+import com.iver.cit.gvsig.fmap.drivers.jdbc.postgis.PostGIS;
 import com.iver.cit.gvsig.fmap.drivers.jdbc.postgis.PostGisDriver;
+import com.iver.cit.gvsig.fmap.drivers.jdbc.postgis.PostGisFeatureIterator;
 
 public class SQLiteDriver extends DefaultJDBCDriver implements ICanReproject{
 
@@ -45,9 +49,9 @@ public class SQLiteDriver extends DefaultJDBCDriver implements ICanReproject{
 	private static int FETCH_SIZE = 5000;
 	private int fetch_min = -1;
 	private int fetch_max = -1;
-	private int myCursorId;
 	private int currentPosition;
 	private String sqlTotal;
+	private String completeWhere;
 	
 	static {
 		SQLiteConfig config = new SQLiteConfig();
@@ -81,8 +85,7 @@ public class SQLiteDriver extends DefaultJDBCDriver implements ICanReproject{
 
 	@Override
 	public String getConnectionStringBeginning() {
-		// TODO Auto-generated method stub
-		return null;
+		return "jdbc:sqlite:";
 	}
 
 	@Override
@@ -112,27 +115,169 @@ public class SQLiteDriver extends DefaultJDBCDriver implements ICanReproject{
 
 	@Override
 	public String getCompleteWhere() {
-		// TODO Auto-generated method stub
-		return null;
+		return completeWhere;
+	}
+
+	private String getCompoundWhere(String sql, Rectangle2D r, String strEPSG) {
+		if (r == null)
+			return getWhereClause();
+
+		double xMin = r.getMinX();
+		double yMin = r.getMinY();
+		double xMax = r.getMaxX();
+		double yMax = r.getMaxY();
+		String wktBox = "geomfromewkt('LINESTRING(" + xMin + " " + yMin
+		+ ", " + xMax + " " + yMin + ", " + xMax + " " + yMax + ", "
+		+ xMin + " " + yMax + ")', " + strEPSG + ")";
+		String sqlAux;
+		if (getWhereClause().toUpperCase().indexOf("WHERE") != -1)
+		    sqlAux = getWhereClause() + " AND \"" + getLyrDef().getFieldGeometry() + "\" && " + wktBox;
+		else
+		    sqlAux = "WHERE \"" + getLyrDef().getFieldGeometry() + "\" && "
+			+ wktBox;
+		return sqlAux;
 	}
 
 	@Override
-	public IFeatureIterator getFeatureIterator(String sql) {
-		// TODO Auto-generated method stub
-		return null;
+	public IFeatureIterator getFeatureIterator(String sql)
+			throws ReadDriverException {
+		SQLiteFeatureIterator geomIterator = null;
+		geomIterator = myGetFeatureIterator(sql);
+		geomIterator.setLyrDef(getLyrDef());
+
+		return geomIterator;
 	}
 
 	@Override
 	public IFeatureIterator getFeatureIterator(Rectangle2D r, String strEPSG) {
-		// TODO Auto-generated method stub
-		return null;
+		if (workingArea != null)
+			r = r.createIntersection(workingArea);
+
+		String sqlAux;
+		if (canReproject(strEPSG)) {
+			sqlAux = sqlOrig + getCompoundWhere(sqlOrig, r, strEPSG);
+		} else {
+			sqlAux = sqlOrig + getCompoundWhere(sqlOrig, r, originalEPSG);
+		}
+
+		System.out.println("SqlAux getFeatureIterator = " + sqlAux);
+
+		return getFeatureIterator(sqlAux);
+	}
+
+	private DBLayerDefinition cloneLyrDef(DBLayerDefinition lyrDef) {
+		DBLayerDefinition clonedLyrDef = new DBLayerDefinition();
+
+		clonedLyrDef.setName(lyrDef.getName());
+		clonedLyrDef.setFieldsDesc(lyrDef.getFieldsDesc());
+
+		clonedLyrDef.setShapeType(lyrDef.getShapeType());
+		clonedLyrDef.setProjection(lyrDef.getProjection());
+
+		clonedLyrDef.setConnection(lyrDef.getConnection());
+		clonedLyrDef.setCatalogName(lyrDef.getCatalogName());
+		clonedLyrDef.setSchema(lyrDef.getSchema());
+		clonedLyrDef.setTableName(lyrDef.getTableName());
+
+		clonedLyrDef.setFieldID(lyrDef.getFieldID());
+		clonedLyrDef.setFieldGeometry(lyrDef.getFieldGeometry());
+		clonedLyrDef.setWhereClause(lyrDef.getWhereClause());
+		clonedLyrDef.setWorkingArea(lyrDef.getWorkingArea());
+		clonedLyrDef.setSRID_EPSG(lyrDef.getSRID_EPSG());
+		clonedLyrDef.setClassToInstantiate(lyrDef.getClassToInstantiate());
+
+		clonedLyrDef.setIdFieldID(lyrDef.getIdFieldID());
+		clonedLyrDef.setDimension(lyrDef.getDimension());
+		clonedLyrDef.setHost(lyrDef.getHost());
+		clonedLyrDef.setPort(lyrDef.getPort());
+		clonedLyrDef.setDataBase(lyrDef.getDataBase());
+		clonedLyrDef.setUser(lyrDef.getUser());
+		clonedLyrDef.setPassword(lyrDef.getPassword());
+		clonedLyrDef.setConnectionName(lyrDef.getConnectionName());
+		return clonedLyrDef;
 	}
 
 	@Override
 	public IFeatureIterator getFeatureIterator(Rectangle2D r, String strEPSG,
 			String[] alphaNumericFieldsNeeded) {
-		// TODO Auto-generated method stub
-		return null;
+		String sqlAux = null;
+		DBLayerDefinition lyrDef = getLyrDef();
+		DBLayerDefinition clonedLyrDef = cloneLyrDef(lyrDef);
+		ArrayList<FieldDescription> myFieldsDesc = new ArrayList<FieldDescription>(); // =
+																						// new
+																						// FieldDescription[alphaNumericFieldsNeeded.length+1];
+		try {
+			if (workingArea != null) {
+				r = r.createIntersection(workingArea);
+			}
+			String strAux = getGeometryField(lyrDef.getFieldGeometry());
+
+			boolean found = false;
+			int fieldIndex = -1;
+			if (alphaNumericFieldsNeeded != null) {
+				FieldDescription[] fieldsDesc = lyrDef.getFieldsDesc();
+
+				for (int i = 0; i < alphaNumericFieldsNeeded.length; i++) {
+					fieldIndex = lyrDef
+							.getFieldIdByName(alphaNumericFieldsNeeded[i]);
+					if (fieldIndex < 0) {
+						throw new RuntimeException(
+								"No se ha encontrado el nombre de campo "
+										+ metaData.getColumnName(i));
+					}
+					strAux = strAux
+							+ ", "
+							+ SQLite
+									.escapeFieldName(lyrDef.getFieldNames()[fieldIndex]);
+					if (alphaNumericFieldsNeeded[i].equalsIgnoreCase(lyrDef
+							.getFieldID())) {
+						found = true;
+						clonedLyrDef.setIdFieldID(i);
+					}
+
+					myFieldsDesc.add(fieldsDesc[fieldIndex]);
+				}
+			}
+			// Nos aseguramos de pedir siempre el campo ID
+			if (found == false) {
+				strAux = strAux + ", " + lyrDef.getFieldID();
+				myFieldsDesc.add(lyrDef.getFieldsDesc()[lyrDef
+						.getIdField(lyrDef.getFieldID())]);
+				clonedLyrDef.setIdFieldID(myFieldsDesc.size() - 1);
+			}
+			clonedLyrDef.setFieldsDesc((FieldDescription[]) myFieldsDesc
+					.toArray(new FieldDescription[] {}));
+
+			String sqlProv = "SELECT " + strAux + " FROM "
+			+ lyrDef.getComposedTableName() + " ";
+
+			if (canReproject(strEPSG)) {
+				sqlAux = sqlProv + getCompoundWhere(sqlProv, r, strEPSG);
+			} else {
+				sqlAux = sqlProv + getCompoundWhere(sqlProv, r, originalEPSG);
+			}
+
+			System.out.println("SqlAux getFeatureIterator = " + sqlAux);
+			SQLiteFeatureIterator geomIterator = null;
+			geomIterator = myGetFeatureIterator(sqlAux);
+			geomIterator.setLyrDef(clonedLyrDef);
+			return geomIterator;
+		} catch (Exception e) {
+			throw new ReadDriverException("PostGIS Driver", e);
+		}
+	}
+
+	private SQLiteFeatureIterator myGetFeatureIterator(String sql)
+			throws ReadDriverException {
+		SQLiteFeatureIterator geomIterator = null;
+		try {
+			geomIterator = new SQLiteFeatureIterator(
+					((ConnectionJDBC) conn).getConnection(),
+					sql);
+		} catch (SQLException e) {
+			throw new ReadDriverException("SQLite Driver", e);
+		}
+		return geomIterator;
 	}
 
 	private void setAbsolutePosition(int index) throws SQLException {
@@ -153,24 +298,11 @@ public class SQLiteDriver extends DefaultJDBCDriver implements ICanReproject{
 			fetch_max = fetch_min + FETCH_SIZE - 1;
 			// y cogemos ese cacho
 			rs.close();
-			
+
 			Statement st = ((ConnectionJDBC)conn).getConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
 			ResultSet.CONCUR_READ_ONLY);
-			
-			myCursorId++;
-			st.execute("declare "
-					+ getTableName()
-					+ myCursorId
-					+ "_wkb_cursorAbsolutePosition binary scroll cursor with hold for "
-					+ sqlTotal);
-			st.executeQuery("fetch absolute " + fetch_min + " in "
-					+ getTableName() + myCursorId
-					+ "_wkb_cursorAbsolutePosition");
-			
-			rs = st.executeQuery("fetch forward " + FETCH_SIZE + " in "
-					+ getTableName() + myCursorId
-					+ "_wkb_cursorAbsolutePosition");
-			
+
+			rs = st.executeQuery(sqlTotal + " LIMIT " + FETCH_SIZE + " OFFSET " + fetch_min);
 
 		}
 		rs.absolute(index - fetch_min + 1);
@@ -182,12 +314,9 @@ public class SQLiteDriver extends DefaultJDBCDriver implements ICanReproject{
 	public IGeometry getShape(int index) throws ReadDriverException {
 		IGeometry geom = null;
 		try {
-			Statement stmt = conn.createStatement();
-			String st = "SELECT asbinary(geometry) FROM comunidad WHERE pk_uid = " + index + ";";
-			System.out.println("Query: " + st);
-			ResultSet result = stmt.executeQuery(st);
-			if (result != null) {
-				byte[] data = result.getBytes(1);
+			setAbsolutePosition(index);
+			if (rs != null) {
+				byte[] data = rs.getBytes(1);
 				if (data == null) // null geometry.
 					return null;
 				geom = parser.parse(data);
@@ -241,8 +370,7 @@ public class SQLiteDriver extends DefaultJDBCDriver implements ICanReproject{
 				else if (geometryType.compareToIgnoreCase("MULTIPOLYGON") == 0)
 					shapeType = FShape.POLYGON;
 				dbld.setShapeType(shapeType);
-				
-				//jomarlla
+
 				int dimension  = rs.getString("COORD_DIMENSION").length();
 				dbld.setDimension(dimension);
 
@@ -259,7 +387,7 @@ public class SQLiteDriver extends DefaultJDBCDriver implements ICanReproject{
 
 	}
 
-	private Value getFieldValue(ResultSet aRs, int fieldId) throws SQLException {
+	public static Value getFieldValue(ResultSet aRs, int fieldId) throws SQLException {
 		ResultSetMetaData metaData = aRs.getMetaData();
 		byte[] byteBuf = aRs.getBytes(fieldId);
 		if (byteBuf == null)
