@@ -21,7 +21,7 @@ public class test {
 
 	//It works!
 	private static void readingSinglePointGeom() {
-		SQLiteDriver driver = new SQLiteDriver();
+		SpatiaLiteDriver driver = new SpatiaLiteDriver();
 		try {
 			IGeometry geom = driver.getShape(1);
 			System.out.println(geom.toJTSGeometry().toText());

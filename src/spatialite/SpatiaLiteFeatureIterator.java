@@ -58,7 +58,7 @@ import com.iver.cit.gvsig.fmap.drivers.DBLayerDefinition;
 import com.iver.cit.gvsig.fmap.drivers.IFeatureIterator;
 import com.iver.cit.gvsig.fmap.drivers.WKBParser3;
 
-public class SQLiteFeatureIterator implements IFeatureIterator {
+public class SpatiaLiteFeatureIterator implements IFeatureIterator {
 
 	private static int FETCH_SIZE = 5000;
 	private WKBParser3 parser = new WKBParser3();
@@ -78,7 +78,7 @@ public class SQLiteFeatureIterator implements IFeatureIterator {
 	int numReg = 0;
 	int idFieldID = -1;
 
-	public SQLiteFeatureIterator(Connection conn, String sql)
+	public SpatiaLiteFeatureIterator(Connection conn, String sql)
 			throws SQLException {
 
 		st = conn.createStatement();
@@ -111,7 +111,7 @@ public class SQLiteFeatureIterator implements IFeatureIterator {
 				return false;
 			}
 		} catch (SQLException e) {
-            throw new ReadDriverException("PostGIS Driver",e);
+            throw new ReadDriverException("SpatiaLite Driver",e);
 		}
 
 	}
@@ -122,7 +122,7 @@ public class SQLiteFeatureIterator implements IFeatureIterator {
 			data = rs.getBytes(1);
 			geom = parser.parse(data);
 			for (int fieldId = 2; fieldId <= numColumns; fieldId++) {
-				Value val = SQLiteDriver.getFieldValue(rs, fieldId);
+				Value val = SpatiaLiteDriver.getFieldValue(rs, fieldId);
 				columnValues[columnIndexes[fieldId - 2]] = val;
 			}
 
@@ -138,7 +138,7 @@ public class SQLiteFeatureIterator implements IFeatureIterator {
 			numReg++;
 			return feat;
 		} catch (SQLException e) {
-            throw new ReadDriverException("PostGIS Driver",e);
+            throw new ReadDriverException("SpatiaLite Driver",e);
 		}
 
 	}
@@ -150,7 +150,7 @@ public class SQLiteFeatureIterator implements IFeatureIterator {
 			numReg = 0;
 			rs.close();
 		} catch (SQLException e) {
-            throw new ReadDriverException("PostGIS Driver",e);
+            throw new ReadDriverException("SpatiaLite Driver",e);
 		}
 	}
 

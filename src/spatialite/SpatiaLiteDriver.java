@@ -38,11 +38,11 @@ import com.iver.cit.gvsig.fmap.drivers.jdbc.postgis.PostGIS;
 import com.iver.cit.gvsig.fmap.drivers.jdbc.postgis.PostGisDriver;
 import com.iver.cit.gvsig.fmap.drivers.jdbc.postgis.PostGisFeatureIterator;
 
-public class SQLiteDriver extends DefaultJDBCDriver implements ICanReproject{
+public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject{
 
-	private static Logger logger = Logger.getLogger(SQLiteDriver.class
+	private static Logger logger = Logger.getLogger(SpatiaLiteDriver.class
 			.getName());
-	private static final String NAME = "SQLite JDBC Driver";
+	private static final String NAME = "SpatiaLite JDBC Driver";
 	private static Connection conn = null;
 	private WKBParser3 parser = new WKBParser3();
 	private String originalEPSG = null;
@@ -141,7 +141,7 @@ public class SQLiteDriver extends DefaultJDBCDriver implements ICanReproject{
 	@Override
 	public IFeatureIterator getFeatureIterator(String sql)
 			throws ReadDriverException {
-		SQLiteFeatureIterator geomIterator = null;
+		SpatiaLiteFeatureIterator geomIterator = null;
 		geomIterator = myGetFeatureIterator(sql);
 		geomIterator.setLyrDef(getLyrDef());
 
@@ -159,8 +159,6 @@ public class SQLiteDriver extends DefaultJDBCDriver implements ICanReproject{
 		} else {
 			sqlAux = sqlOrig + getCompoundWhere(sqlOrig, r, originalEPSG);
 		}
-
-		System.out.println("SqlAux getFeatureIterator = " + sqlAux);
 
 		return getFeatureIterator(sqlAux);
 	}
@@ -227,7 +225,7 @@ public class SQLiteDriver extends DefaultJDBCDriver implements ICanReproject{
 					}
 					strAux = strAux
 							+ ", "
-							+ SQLite
+							+ SpatiaLite
 									.escapeFieldName(lyrDef.getFieldNames()[fieldIndex]);
 					if (alphaNumericFieldsNeeded[i].equalsIgnoreCase(lyrDef
 							.getFieldID())) {
@@ -258,24 +256,24 @@ public class SQLiteDriver extends DefaultJDBCDriver implements ICanReproject{
 			}
 
 			System.out.println("SqlAux getFeatureIterator = " + sqlAux);
-			SQLiteFeatureIterator geomIterator = null;
+			SpatiaLiteFeatureIterator geomIterator = null;
 			geomIterator = myGetFeatureIterator(sqlAux);
 			geomIterator.setLyrDef(clonedLyrDef);
 			return geomIterator;
 		} catch (Exception e) {
-			throw new ReadDriverException("PostGIS Driver", e);
+			throw new ReadDriverException("SpatiaLite Driver", e);
 		}
 	}
 
-	private SQLiteFeatureIterator myGetFeatureIterator(String sql)
+	private SpatiaLiteFeatureIterator myGetFeatureIterator(String sql)
 			throws ReadDriverException {
-		SQLiteFeatureIterator geomIterator = null;
+		SpatiaLiteFeatureIterator geomIterator = null;
 		try {
-			geomIterator = new SQLiteFeatureIterator(
+			geomIterator = new SpatiaLiteFeatureIterator(
 					((ConnectionJDBC) conn).getConnection(),
 					sql);
 		} catch (SQLException e) {
-			throw new ReadDriverException("SQLite Driver", e);
+			throw new ReadDriverException("SpatiaLite Driver", e);
 		}
 		return geomIterator;
 	}
@@ -336,7 +334,7 @@ public class SQLiteDriver extends DefaultJDBCDriver implements ICanReproject{
 			int fieldId = idField + 2;
 			return getFieldValue(rs, fieldId);
 		} catch (SQLException e) {
-			throw new ReadDriverException("SQLite Driver", e);
+			throw new ReadDriverException("SpatiaLite Driver", e);
 		}
 	}
 
@@ -440,7 +438,7 @@ public class SQLiteDriver extends DefaultJDBCDriver implements ICanReproject{
 //				BigDecimal dec;
 //				dec = getBigDecimal(buf.array());
 //				return ValueFactory.createValue(dec.doubleValue());
-				throw new UnsupportedOperationException("SQLite NUMERIC TYPE");
+				throw new UnsupportedOperationException("SpatiaLite NUMERIC TYPE");
 			}
 
 		}
