@@ -166,10 +166,8 @@ public class SpatiaLiteFeatureIterator implements IFeatureIterator {
 					throw new RuntimeException("No se ha encontrado el nombre de campo " + metaData.getColumnName(i));
 				}
 				columnIndexes[i - 2] = idRel;
-				if (lyrDef.getFieldID().equals(metaData.getColumnName(i))) {
-					idFieldID = i;
-				}
 			}
+			idFieldID = lyrDef.getIdFieldID();
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

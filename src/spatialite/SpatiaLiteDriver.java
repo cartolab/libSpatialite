@@ -13,10 +13,12 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Hashtable;
 
 import org.apache.log4j.Logger;
 import org.sqlite.SQLiteConfig;
 
+import com.hardcode.gdbms.driver.exceptions.InitializeWriterException;
 import com.hardcode.gdbms.driver.exceptions.ReadDriverException;
 import com.hardcode.gdbms.engine.data.edition.DataWare;
 import com.hardcode.gdbms.engine.values.Value;
@@ -43,27 +45,15 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 	private static Logger logger = Logger.getLogger(SpatiaLiteDriver.class
 			.getName());
 	private static final String NAME = "SpatiaLite JDBC Driver";
-	private static Connection conn = null;
 	private WKBParser3 parser = new WKBParser3();
 	private String originalEPSG = null;
 	private static int FETCH_SIZE = 5000;
 	private int fetch_min = -1;
 	private int fetch_max = -1;
-	private int currentPosition;
 	private String sqlTotal;
 	private String completeWhere;
-	
-	static {
-		SQLiteConfig config = new SQLiteConfig();
-		config.enableLoadExtension(true);
-		try {
-			conn = DriverManager.getConnection("jdbc:sqlite:/home/jlopez/spatialite/prueba.sqlite", config.toProperties());
-			Statement stmt = conn.createStatement();
-			stmt.execute("SELECT load_extension('/usr/lib/libspatialite.so.3.2.0');");
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-	}
+	private String sqlOrig;
+	private String strEPSG = null;
 
 	@Override
 	public void open() {
@@ -73,13 +63,11 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 
 	@Override
 	public String getGeometryField(String fieldName) {
-		// TODO Auto-generated method stub
-		return null;
+		return "asBinary(\"" + fieldName + "\")";
 	}
 
 	@Override
 	public int getDefaultPort() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
@@ -91,7 +79,61 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 	@Override
 	public void setData(IConnection conn, DBLayerDefinition lyrDef)
 			throws DBException {
-		// TODO Auto-generated method stub
+		this.conn = conn;
+		// TODO: Deberíamos poder quitar Conneciton de la llamada y meterlo
+		// en lyrDef desde el principio.
+
+		lyrDef.setConnection(conn);
+		setLyrDef(lyrDef);
+
+		getTableEPSG_and_shapeType(conn, lyrDef);
+
+		getLyrDef().setSRID_EPSG(originalEPSG);
+
+		try {
+			((ConnectionJDBC) conn).getConnection().setAutoCommit(false);
+			sqlOrig = "SELECT " + getTotalFields() + " FROM "
+			+ getLyrDef().getComposedTableName() + " ";
+			// + getLyrDef().getWhereClause();
+			if (canReproject(strEPSG)) {
+				completeWhere = getCompoundWhere(sqlOrig, workingArea, strEPSG);
+			} else {
+				completeWhere = getCompoundWhere(sqlOrig, workingArea,
+						originalEPSG);
+			}
+			// completeWhere = getLyrDef().getWhereClause() + completeWhere;
+
+			String sqlAux = sqlOrig + completeWhere + " ORDER BY "
+					+ getLyrDef().getFieldID();
+
+			sqlTotal = sqlAux;
+			logger.info("Cadena SQL:" + sqlAux);
+			Statement st = ((ConnectionJDBC) conn).getConnection().createStatement();
+			rs = st.executeQuery(sqlAux + " LIMIT " + FETCH_SIZE);
+			fetch_min = 0;
+			fetch_max = FETCH_SIZE - 1;
+			metaData = rs.getMetaData();
+			doRelateID_FID();
+
+			//writer.setCreateTable(false);
+			//writer.setWriteAll(false);
+			//writer.initialize(lyrDef);
+
+		} catch (SQLException e) {
+			
+			try {
+				((ConnectionJDBC) conn).getConnection().rollback();
+			} catch (SQLException e1) {
+				logger.warn("Unable to rollback connection after problem (" + e.getMessage() + ") in setData()");
+			}
+			
+			try {
+				if (rs != null) { rs.close(); }
+			} catch (SQLException e1) {
+				throw new DBException(e);
+			}
+			throw new DBException(e);
+		}
 
 	}
 
@@ -109,8 +151,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 
 	@Override
 	public String getSqlTotal() {
-		// TODO Auto-generated method stub
-		return null;
+		return sqlTotal;
 	}
 
 	@Override
@@ -149,7 +190,8 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 	}
 
 	@Override
-	public IFeatureIterator getFeatureIterator(Rectangle2D r, String strEPSG) {
+	public IFeatureIterator getFeatureIterator(Rectangle2D r, String strEPSG)
+			throws ReadDriverException {
 		if (workingArea != null)
 			r = r.createIntersection(workingArea);
 
@@ -161,6 +203,45 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 		}
 
 		return getFeatureIterator(sqlAux);
+	}
+
+	/**
+	 * Recorre el recordset creando una tabla Hash que usaremos para
+	 * relacionar el número de un registro con su identificador único.
+	 * Debe ser llamado en el setData justo después de crear el recorset
+	 * principal
+	 * @throws SQLException
+	 */
+	protected void doRelateID_FID() throws DBException
+	{
+		try {
+			hashRelate = new Hashtable();
+
+			String strSQL = "SELECT " + getLyrDef().getFieldID() + " FROM "
+			+ getLyrDef().getComposedTableName() + " "
+			+ getCompleteWhere() + " ORDER BY "
+			+ getLyrDef().getFieldID();
+			Statement s = ((ConnectionJDBC) getConnection()).getConnection()
+			.createStatement();
+			ResultSet r = s.executeQuery(strSQL);
+			int id = 0;
+			int gid;
+			int index = 0;
+			while (r.next()) {
+				String aux = r.getString(1);
+				Value val = ValueFactory.createValue(aux);
+				hashRelate.put(val, new Integer(index));
+				logger.info("ASOCIANDO CLAVE " + aux + " CON VALOR "
+						+ index);
+				index++;
+			}
+			numReg = index;
+			r.close();
+			// rs.beforeFirst();
+		} catch (SQLException e) {
+			throw new DBException(e);
+		}
+
 	}
 
 	private DBLayerDefinition cloneLyrDef(DBLayerDefinition lyrDef) {
@@ -197,7 +278,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 
 	@Override
 	public IFeatureIterator getFeatureIterator(Rectangle2D r, String strEPSG,
-			String[] alphaNumericFieldsNeeded) {
+			String[] alphaNumericFieldsNeeded) throws ReadDriverException {
 		String sqlAux = null;
 		DBLayerDefinition lyrDef = getLyrDef();
 		DBLayerDefinition clonedLyrDef = cloneLyrDef(lyrDef);
@@ -303,8 +384,6 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 			rs = st.executeQuery(sqlTotal + " LIMIT " + FETCH_SIZE + " OFFSET " + fetch_min);
 
 		}
-		rs.absolute(index - fetch_min + 1);
-		currentPosition = index;
 
 	}
 
@@ -391,7 +470,6 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 		if (byteBuf == null)
 			return ValueFactory.createNullValue();
 		else {
-			ByteBuffer buf = ByteBuffer.wrap(byteBuf);
 			if (metaData.getColumnType(fieldId) == Types.VARCHAR)
 				return ValueFactory.createValue(aRs.getString(fieldId));
 			if (metaData.getColumnType(fieldId) == Types.CHAR){
@@ -403,23 +481,23 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 				}
 			}
 			if (metaData.getColumnType(fieldId) == Types.FLOAT)
-				return ValueFactory.createValue(buf.getFloat());
+				return ValueFactory.createValue(aRs.getFloat(fieldId));
 			if (metaData.getColumnType(fieldId) == Types.DOUBLE)
-				return ValueFactory.createValue(buf.getDouble());
+				return ValueFactory.createValue(aRs.getDouble(fieldId));
 			if (metaData.getColumnType(fieldId) == Types.REAL)
-				return ValueFactory.createValue(buf.getFloat());
+				return ValueFactory.createValue(aRs.getFloat(fieldId));
 			if (metaData.getColumnType(fieldId) == Types.INTEGER)
-				return ValueFactory.createValue(buf.getInt());
+				return ValueFactory.createValue(aRs.getInt(fieldId));
 			if (metaData.getColumnType(fieldId) == Types.SMALLINT)
-				return ValueFactory.createValue(buf.getShort());
+				return ValueFactory.createValue(aRs.getShort(fieldId));
 			if (metaData.getColumnType(fieldId) == Types.BIGINT)
-				return ValueFactory.createValue(buf.getLong());
+				return ValueFactory.createValue(aRs.getLong(fieldId));
 			if (metaData.getColumnType(fieldId) == Types.BIT)
 				return ValueFactory.createValue((byteBuf[0] == 1));
 			if (metaData.getColumnType(fieldId) == Types.BOOLEAN)
 				return ValueFactory.createValue(aRs.getBoolean(fieldId));
 			if (metaData.getColumnType(fieldId) == Types.DATE) {
-				long daysAfter2000 = buf.getInt() + 1;
+				long daysAfter2000 = aRs.getInt(fieldId) + 1;
 				long msecs = daysAfter2000 * 24 * 60 * 60 * 1000;
 				long real_msecs_date1 = (long) (XTypes.NUM_msSecs2000 + msecs);
 				Date realDate1 = new Date(real_msecs_date1);
@@ -429,7 +507,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 				return ValueFactory.createValue("NOT IMPLEMENTED YET");
 			}
 			if (metaData.getColumnType(fieldId) == Types.TIMESTAMP) {
-				double segsReferredTo2000 = buf.getDouble();
+				double segsReferredTo2000 = aRs.getDouble(fieldId);
 				long real_msecs = (long) (XTypes.NUM_msSecs2000 + segsReferredTo2000 * 1000);
 				Timestamp valTimeStamp = new Timestamp(real_msecs);
 				return ValueFactory.createValue(valTimeStamp);
@@ -473,12 +551,12 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 
 	@Override
 	public String getDestProjection() {
-		return null;
+		return strEPSG;
 	}
 
 	@Override
 	public void setDestProjection(String toEPSG) {
-		// TODO Auto-generated method stub
+		this.strEPSG = toEPSG;
 		
 	}
 
