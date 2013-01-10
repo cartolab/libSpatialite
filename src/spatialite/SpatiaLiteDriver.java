@@ -472,53 +472,10 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 		else {
 			if (metaData.getColumnType(fieldId) == Types.VARCHAR)
 				return ValueFactory.createValue(aRs.getString(fieldId));
-			if (metaData.getColumnType(fieldId) == Types.CHAR){
-				String character = aRs.getString(fieldId);
-				if (character != null){
-					return ValueFactory.createValue(character.trim());
-				}else{
-					return ValueFactory.createValue(character);
-				}
-			}
 			if (metaData.getColumnType(fieldId) == Types.FLOAT)
-				return ValueFactory.createValue(aRs.getFloat(fieldId));
-			if (metaData.getColumnType(fieldId) == Types.DOUBLE)
-				return ValueFactory.createValue(aRs.getDouble(fieldId));
-			if (metaData.getColumnType(fieldId) == Types.REAL)
 				return ValueFactory.createValue(aRs.getFloat(fieldId));
 			if (metaData.getColumnType(fieldId) == Types.INTEGER)
 				return ValueFactory.createValue(aRs.getInt(fieldId));
-			if (metaData.getColumnType(fieldId) == Types.SMALLINT)
-				return ValueFactory.createValue(aRs.getShort(fieldId));
-			if (metaData.getColumnType(fieldId) == Types.BIGINT)
-				return ValueFactory.createValue(aRs.getLong(fieldId));
-			if (metaData.getColumnType(fieldId) == Types.BIT)
-				return ValueFactory.createValue((byteBuf[0] == 1));
-			if (metaData.getColumnType(fieldId) == Types.BOOLEAN)
-				return ValueFactory.createValue(aRs.getBoolean(fieldId));
-			if (metaData.getColumnType(fieldId) == Types.DATE) {
-				long daysAfter2000 = aRs.getInt(fieldId) + 1;
-				long msecs = daysAfter2000 * 24 * 60 * 60 * 1000;
-				long real_msecs_date1 = (long) (XTypes.NUM_msSecs2000 + msecs);
-				Date realDate1 = new Date(real_msecs_date1);
-				return ValueFactory.createValue(realDate1);
-			}
-			if (metaData.getColumnType(fieldId) == Types.TIME) {
-				return ValueFactory.createValue("NOT IMPLEMENTED YET");
-			}
-			if (metaData.getColumnType(fieldId) == Types.TIMESTAMP) {
-				double segsReferredTo2000 = aRs.getDouble(fieldId);
-				long real_msecs = (long) (XTypes.NUM_msSecs2000 + segsReferredTo2000 * 1000);
-				Timestamp valTimeStamp = new Timestamp(real_msecs);
-				return ValueFactory.createValue(valTimeStamp);
-			}
-			if (metaData.getColumnType(fieldId) == Types.NUMERIC) {
-//				BigDecimal dec;
-//				dec = getBigDecimal(buf.array());
-//				return ValueFactory.createValue(dec.doubleValue());
-				throw new UnsupportedOperationException("SpatiaLite NUMERIC TYPE");
-			}
-
 		}
 
 		return ValueFactory.createNullValue();
