@@ -18,7 +18,7 @@ public class test {
 
 
 	public static void main(String[] args) {
-		readingSinglePointGeom();
+		retrievingPrimaryKey();
 
 	}
 
@@ -34,7 +34,8 @@ public class test {
 				System.out.println("Geom: " + feature.getGeometry().toJTSGeometry().toText() +
 						" | pk_uid: " + feature.getAttribute(0) +
 						" | cod_com: " + feature.getAttribute(1) +
-						" | departa: " + feature.getAttribute(2));
+						" | departa: " + feature.getAttribute(2) +
+						" | test1: " + feature.getAttribute(3));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -42,7 +43,25 @@ public class test {
 	}
 	
 	//It works!
-	public void simpleTest() {
+	public static void retrievingPrimaryKey() {
+		try {
+			SQLiteConfig config = new SQLiteConfig();
+			config.enableLoadExtension(true);
+			SpatiaLiteDriver driver = new SpatiaLiteDriver();
+			Connection conn = DriverManager.getConnection("jdbc:sqlite:/home/jlopez/spatialite/prueba.sqlite", config.toProperties());
+			Statement stmt = conn.createStatement();
+			stmt.execute("SELECT load_extension('/usr/lib/libspatialite.so.3.2.0');");
+			IConnection iconn = new ConnectionJDBC();
+			((ConnectionJDBC) iconn).setDataConnection(conn, "", "");
+			String pk = driver.getPrimaryKey(iconn, "comunidad");
+			System.out.println("Primary Key de 'comunidad': " + pk);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	//It works!
+	public static void simpleTest() {
 		SQLiteConfig config = new SQLiteConfig();
 		config.enableLoadExtension(true);
 		Connection conn;
@@ -81,10 +100,11 @@ public class test {
 	        String fidField = "PK_UID";
 	        String geomField = "geometry";
 
-	        String[] fields = new String[3];
+	        String[] fields = new String[4];
 	        fields[0] = "PK_UID";
 	        fields[1] = "cod_com";
 	        fields[2] = "departa";
+	        fields[3] = "test6";
 
 	        String whereClause = "";
 

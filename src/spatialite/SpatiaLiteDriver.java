@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -139,14 +140,12 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 
 	@Override
 	public DriverAttributes getDriverAttributes() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public boolean isWritable() {
-		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 
 	@Override
@@ -387,6 +386,36 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 
 	}
 
+   public String getPrimaryKey(IConnection con, String table_name) {
+
+       String query = "SELECT rowid FROM \"" + table_name.replace("\"", "\\\"") + "\" LIMIT 1;";
+
+        try {
+            
+            Connection c = ((ConnectionJDBC)con).getConnection();
+            PreparedStatement st = c.prepareStatement(query);
+
+            ResultSet rs = st.executeQuery();
+
+            String primaryKey = "";
+            if (rs.next()) {
+                primaryKey = rs.getMetaData().getColumnName(1);
+            }
+            
+            rs.close();
+            st.close();
+            
+            return primaryKey;
+        } catch (SQLException e) {
+            try {
+                con.close();
+            } catch (DBException e2) {
+                e.printStackTrace();
+            } 
+            return "";
+        }
+    }
+
 	@Override
 	public IGeometry getShape(int index) throws ReadDriverException {
 		IGeometry geom = null;
@@ -489,7 +518,6 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 
 	@Override
 	public int[] getPrimaryKeys() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
