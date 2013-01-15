@@ -510,7 +510,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
        String query = "SELECT rowid FROM \"" + table_name.replace("\"", "\\\"") + "\" LIMIT 1;";
 
         try {
-            
+
             Connection c = ((ConnectionJDBC)con).getConnection();
             PreparedStatement st = c.prepareStatement(query);
 
@@ -520,10 +520,10 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
             if (rs.next()) {
                 primaryKey = rs.getMetaData().getColumnName(1);
             }
-            
+
             rs.close();
             st.close();
-            
+
             return primaryKey;
         } catch (SQLException e) {
             try {
@@ -563,6 +563,36 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 		} catch (SQLException e) {
 			throw new ReadDriverException("SpatiaLite Driver", e);
 		}
+	}
+
+	/**
+	 * @see com.iver.cit.gvsig.fmap.layers.ReadableVectorial#getFullExtent()
+	 */
+	public Rectangle2D getFullExtent() throws ReadDriverException {
+		if (fullExtent == null) {
+			try {
+				Statement s = ((ConnectionJDBC) conn).getConnection()
+						.createStatement();
+				String query = "SELECT asBinary(extent(\""
+				    + getLyrDef().getFieldGeometry()
+				    + "\")) FROM " + getLyrDef().getComposedTableName()
+				    + " " + getCompleteWhere();
+				ResultSet r = s.executeQuery(query);
+				r.next();
+				byte[] geomValue = r.getBytes(1);
+				if (geomValue == null) {
+					logger.debug("La capa " + getLyrDef().getName()
+							+ " no tiene FULLEXTENT");
+					return null;
+				}
+				fullExtent = parser.parse(geomValue).getBounds2D();
+			} catch (SQLException e) {
+				throw new ReadDriverException(this.getName(), e);
+			}
+
+		}
+
+		return fullExtent;
 	}
 
 	private void getTableEPSG_and_shapeType(IConnection conn,
