@@ -235,6 +235,28 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 		}
 	}
 
+	public String[] getAllFieldTypeNames(IConnection conn, String table_name) throws DBException {
+	    Statement st = null;
+	    ResultSet rs = null;
+		try {
+			st = ((ConnectionJDBC)conn).getConnection().createStatement();
+			rs = st.executeQuery("SELECT * FROM " + table_name + " LIMIT 1");
+			ResultSetMetaData rsmd = rs.getMetaData();
+			String[] ret = new String[rsmd.getColumnCount()];
+
+			for (int i = 0; i < ret.length; i++) {
+				ret[i] = rsmd.getColumnTypeName(i+1);
+			}
+			return ret;
+		} catch (SQLException e) {
+			closeConnection(conn);
+			throw new DBException(e);
+		} finally {
+			closeStatement(st);
+			closeResultSet(rs);
+		}
+	}
+
 	@Override
 	public DriverAttributes getDriverAttributes() {
 		return null;
