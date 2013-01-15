@@ -133,7 +133,7 @@ public class SpatiaLiteFeatureIterator implements IFeatureIterator {
 			}
 			else
 			{
-				throw new ReadDriverException("PostGIS Driver",null);
+				throw new ReadDriverException("SpatiaLite Driver",null);
 			}
 			numReg++;
 			return feat;
