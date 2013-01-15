@@ -1,5 +1,6 @@
 package spatialite;
 
+import java.awt.geom.Rectangle2D;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -18,8 +19,23 @@ public class test {
 
 
 	public static void main(String[] args) {
-		retrievingPrimaryKey();
+		retrievingAllFields();
 
+	}
+
+	//It works!
+	private static void gettingFullExtent() {
+		try {
+			SpatiaLiteDriver driver = new SpatiaLiteDriver();
+			DBLayerDefinition lyrDef = initLayerSpatiaLite();
+			driver.setData(lyrDef.getConnection(), lyrDef);
+			Rectangle2D extent = driver.getFullExtent();
+			System.out.println("FULL EXTENT: Max X: " + extent.getMaxX() +
+					" | Max Y: " + extent.getMaxY() + " | Min X: " + extent.getMinX() +
+					" | Min Y: " + extent.getMinY());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	//It works!
@@ -43,7 +59,67 @@ public class test {
 	}
 	
 	//It works!
-	public static void retrievingPrimaryKey() {
+	private static void retrievingAllFields() {
+		try {
+			SQLiteConfig config = new SQLiteConfig();
+			config.enableLoadExtension(true);
+			SpatiaLiteDriver driver = new SpatiaLiteDriver();
+			Connection conn = DriverManager.getConnection("jdbc:sqlite:/home/jlopez/spatialite/prueba.sqlite", config.toProperties());
+			Statement stmt = conn.createStatement();
+			stmt.execute("SELECT load_extension('/usr/lib/libspatialite.so.3.2.0');");
+			IConnection iconn = new ConnectionJDBC();
+			((ConnectionJDBC) iconn).setDataConnection(conn, "", "");
+			String[] fields = driver.getAllFields(iconn, "comunidad");
+			for(String field: fields) {
+				System.out.println("Campo de 'comunidad': " + field);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	//It works!
+	private static void retrievingAllFieldTypes() {
+		try {
+			SQLiteConfig config = new SQLiteConfig();
+			config.enableLoadExtension(true);
+			SpatiaLiteDriver driver = new SpatiaLiteDriver();
+			Connection conn = DriverManager.getConnection("jdbc:sqlite:/home/jlopez/spatialite/prueba.sqlite", config.toProperties());
+			Statement stmt = conn.createStatement();
+			stmt.execute("SELECT load_extension('/usr/lib/libspatialite.so.3.2.0');");
+			IConnection iconn = new ConnectionJDBC();
+			((ConnectionJDBC) iconn).setDataConnection(conn, "", "");
+			String[] types = driver.getAllFieldTypeNames(iconn, "comunidad");
+			for(String type: types) {
+				System.out.println("Tipo de campo de 'comunidad': " + type);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	//It works!
+	private static void retrievingGeometryField() {
+		try {
+			SQLiteConfig config = new SQLiteConfig();
+			config.enableLoadExtension(true);
+			SpatiaLiteDriver driver = new SpatiaLiteDriver();
+			Connection conn = DriverManager.getConnection("jdbc:sqlite:/home/jlopez/spatialite/prueba.sqlite", config.toProperties());
+			Statement stmt = conn.createStatement();
+			stmt.execute("SELECT load_extension('/usr/lib/libspatialite.so.3.2.0');");
+			IConnection iconn = new ConnectionJDBC();
+			((ConnectionJDBC) iconn).setDataConnection(conn, "", "");
+			String[] fields = driver.getGeometryFieldsCandidates(iconn, "comunidad");
+			for(String field: fields) {
+				System.out.println("Campo geometría de 'comunidad': " + field);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	//It works!
+	private static void retrievingPrimaryKey() {
 		try {
 			SQLiteConfig config = new SQLiteConfig();
 			config.enableLoadExtension(true);
@@ -61,7 +137,7 @@ public class test {
 	}
 	
 	//It works!
-	public static void simpleTest() {
+	private static void simpleTest() {
 		SQLiteConfig config = new SQLiteConfig();
 		config.enableLoadExtension(true);
 		Connection conn;
