@@ -45,6 +45,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 	private String completeWhere;
 	private String sqlOrig;
 	private String strEPSG = null;
+	private SpatiaLite spatiaLite = new SpatiaLite();
 
 	@Override
 	public void open() {
@@ -146,7 +147,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 
 	@Override
 	public String getConnectionStringBeginning() {
-		return "jdbc:sqlite:";
+		return spatiaLite.getConnectionStringBeginning();
 	}
 
 	@Override
@@ -216,7 +217,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 
 		try {
 			st = ((ConnectionJDBC)conn).getConnection().createStatement();
-			rs = st.executeQuery("SELECT * FROM " + table_name + " LIMIT 1");
+			rs = st.executeQuery("SELECT * FROM \"" + table_name.replace("\"", "\\\"") + "\" LIMIT 1");
 			ResultSetMetaData rsmd = rs.getMetaData();
 			String[] ret = new String[rsmd.getColumnCount()];
 
@@ -240,7 +241,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 	    ResultSet rs = null;
 		try {
 			st = ((ConnectionJDBC)conn).getConnection().createStatement();
-			rs = st.executeQuery("SELECT * FROM " + table_name + " LIMIT 1");
+			rs = st.executeQuery("SELECT * FROM \"" + table_name.replace("\"", "\\\"") + "\" LIMIT 1");
 			ResultSetMetaData rsmd = rs.getMetaData();
 			String[] ret = new String[rsmd.getColumnCount()];
 
@@ -692,6 +693,10 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 	public void setDestProjection(String toEPSG) {
 		this.strEPSG = toEPSG;
 		
+	}
+
+	public boolean canRead(IConnection iconn, String tablename) {
+		return true;
 	}
 
 	@Override

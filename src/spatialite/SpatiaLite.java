@@ -108,6 +108,10 @@ public class SpatiaLite {
 		return false;
 	}
 
+	public String getConnectionStringBeginning() {
+		return "jdbc:sqlite:";
+	}
+
 	/**
 	 * @param dbLayerDef
 	 * @param fieldsDescr
