@@ -1,25 +1,19 @@
 package spatialite;
 
 import java.awt.geom.Rectangle2D;
-import java.math.BigDecimal;
-import java.nio.ByteBuffer;
 import java.sql.Connection;
-import java.sql.Date;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 
 import org.apache.log4j.Logger;
-import org.sqlite.SQLiteConfig;
 
-import com.hardcode.gdbms.driver.exceptions.InitializeWriterException;
 import com.hardcode.gdbms.driver.exceptions.ReadDriverException;
 import com.hardcode.gdbms.engine.data.edition.DataWare;
 import com.hardcode.gdbms.engine.values.Value;
@@ -36,10 +30,6 @@ import com.iver.cit.gvsig.fmap.drivers.FieldDescription;
 import com.iver.cit.gvsig.fmap.drivers.IConnection;
 import com.iver.cit.gvsig.fmap.drivers.IFeatureIterator;
 import com.iver.cit.gvsig.fmap.drivers.WKBParser3;
-import com.iver.cit.gvsig.fmap.drivers.XTypes;
-import com.iver.cit.gvsig.fmap.drivers.jdbc.postgis.PostGIS;
-import com.iver.cit.gvsig.fmap.drivers.jdbc.postgis.PostGisDriver;
-import com.iver.cit.gvsig.fmap.drivers.jdbc.postgis.PostGisFeatureIterator;
 
 public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject{
 
@@ -58,8 +48,90 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 
 	@Override
 	public void open() {
-		// TODO Auto-generated method stub
+	}
 
+	/**
+	 * Close a ResultSet
+	 * @param rs, the resultset to be closed
+	 * @return true if the resulset was correctly closed. false in any other case
+	 */
+	public boolean closeResultSet(ResultSet rs) {
+		boolean error = false;
+
+		if (rs != null) {
+			try {
+				rs.close();
+				error = true;
+			} catch (SQLException e) {
+				logger.error(e.getMessage(), e);
+			}
+		}
+
+		return error;
+	}
+
+	/**
+	 * Close a Statement
+	 * @param st, the statement to be closed
+	 * @return true if the  statement was correctly closed, false in any other case
+	 */
+	public boolean closeStatement(Statement st) {
+		boolean error = false;
+
+		if (st != null) {
+			try {
+				st.close();
+				error = true;
+			} catch (SQLException e) {
+				logger.error(e.getMessage(), e);
+			}
+		}
+
+		return error;
+	}
+
+	/**
+	 * Close a Connection
+	 * @param conn, the  connection to be closed
+	 * @return true if the connection was correctly closed, false in any other case
+	 */
+	public boolean closeConnection(IConnection conn) {
+		boolean error = false;
+
+		if (conn != null) {
+			try {
+				conn.close();
+				error = true;
+			} catch (DBException e) {
+				logger.error(e.getMessage(), e);
+			}
+		}
+
+		return error;
+	}
+
+	@Override
+	public String[] getGeometryFieldsCandidates(IConnection conn,
+			String table_name) throws DBException {
+		List<String> list = new ArrayList<String>();
+		try {
+			String sql = "SELECT * FROM GEOMETRY_COLUMNS WHERE F_TABLE_NAME = ?";
+			PreparedStatement stAux = ((ConnectionJDBC) conn).getConnection()
+					.prepareStatement(sql);
+			stAux.setString(1, table_name);
+
+			ResultSet rs = stAux.executeQuery();
+			while (rs.next()) {
+				String geomCol = rs.getString("F_GEOMETRY_COLUMN");
+				list.add(geomCol);
+			}
+			rs.close();
+			stAux.close();
+		} catch (SQLException e) {
+			closeConnection(conn);
+			throw new DBException(e);
+		}
+		return list.toArray(new String[0]);
 	}
 
 	@Override
