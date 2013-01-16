@@ -44,8 +44,7 @@ IFieldManager {
 	private JdbcFieldManager fieldManager;
 
 	/**
-	 * Useful to create a layer from scratch Call setFile before using this
-	 * function
+	 * Useful to create a layer from scratch 
 	 * 
 	 * @param lyrDef
 	 * @throws InitializeWriterException
@@ -57,30 +56,22 @@ IFieldManager {
 		super.initialize(lyrD);
 		this.lyrDef = (DBLayerDefinition) lyrD;
 		conex = lyrDef.getConnection();
-
 		try {
 			st = ((ConnectionJDBC) conex).getConnection().createStatement();
-
 			if (bCreateTable) {
 				dropTableIfExist();
-
 				String sqlCreate = spatiaLite.getSqlCreateSpatialTable(lyrDef,
-						lyrDef.getFieldsDesc(), true);
+						true);
 				System.out.println("sqlCreate =" + sqlCreate);
 				st.execute(sqlCreate);
-
-				String sqlAlter = spatiaLite.getSqlAlterTable(lyrDef);
+				String sqlAlter = spatiaLite.getSqlAddGeometryColumn(lyrDef);
 				System.out.println("sqlAlter =" + sqlAlter);
 				st.execute(sqlAlter);
 				((ConnectionJDBC) conex).getConnection().commit();
 			}
 			((ConnectionJDBC) conex).getConnection().setAutoCommit(false);
-
-			String schema_tablename = lyrDef.getComposedTableName();
-			fieldManager = new JdbcFieldManager(((ConnectionJDBC)conex).getConnection(), schema_tablename);
-
-
-
+			String table_name = lyrDef.getTableName();
+			fieldManager = new JdbcFieldManager(((ConnectionJDBC)conex).getConnection(), table_name);
 		} catch (SQLException e) {
 			throw new InitializeWriterException(getName(), e);
 		}
@@ -88,14 +79,11 @@ IFieldManager {
 	}
 
 	public void preProcess() throws StartWriterVisitorException {
-		numRows = 0;
-
 		ResultSet rsAux;
 		try {
 			((ConnectionJDBC) conex).getConnection().rollback();
 			alterTable();
-
-			rsAux = st.executeQuery("SHOW server_encoding;");
+			rsAux = st.executeQuery("PRAGMA encoding;");
 			rsAux.next();
 			String serverEncoding = rsAux.getString(1);
 			System.out.println("Server encoding = " + serverEncoding);
@@ -109,7 +97,6 @@ IFieldManager {
 	}
 
 	public void process(IRowEdited row) throws ProcessWriterVisitorException {
-
 		String sqlInsert;
 		try {
 			switch (row.getStatus()) {
@@ -141,14 +128,13 @@ IFieldManager {
 				}
 				break;
 			case IRowEdited.STATUS_DELETED:
-				String sqlDelete = spatiaLite.getSqlDeleteFeature(lyrDef, row);
+				IFeature featD = (IFeature) row.getLinkedRow();
+				String sqlDelete = spatiaLite.getSqlDeleteFeature(lyrDef, featD);
 				System.out.println("sql = " + sqlDelete);
 				st.execute(sqlDelete);
 
 				break;
 			}
-
-			numRows++;
 		} catch (ProcessVisitorException e) {
 			Logger.getLogger(this.getClass()).error(getName(), e);
 		} catch (SQLException e) {
@@ -166,49 +152,24 @@ IFieldManager {
 	}
 
 	public String getName() {
-		return "PostGIS Writer";
+		return "SpatiaLite Writer";
 	}
 
 	public boolean canWriteGeometry(int gvSIGgeometryType) {
 		switch (gvSIGgeometryType) {
 		case FShape.POINT:
-			return true;
 		case FShape.LINE:
-			return true;
 		case FShape.POLYGON:
-			return true;
-		case FShape.ARC:
-			return false;
-		case FShape.ELLIPSE:
-			return false;
 		case FShape.MULTIPOINT:
+		case FShape.MULTI:
 			return true;
-		case FShape.TEXT:
+		default:
 			return false;
 		}
-		return false;
 	}
 
 	public boolean canWriteAttribute(int sqlType) {
-		switch (sqlType) {
-		case Types.DOUBLE:
-		case Types.FLOAT:
-		case Types.INTEGER:
-		case Types.BIGINT:
-			return true;
-		case Types.DATE:
-			return true;
-		case Types.BIT:
-		case Types.BOOLEAN:
-			return true;
-		case Types.VARCHAR:
-		case Types.CHAR:
-		case Types.LONGVARCHAR:
-			return true;
-
-		}
-
-		return false;
+		return true;
 	}
 
 	/**
@@ -242,7 +203,6 @@ IFieldManager {
 
 	public void renameField(String antName, String newName) {
 		fieldManager.renameField(antName, newName);
-
 	}
 
 	public boolean alterTable() throws WriteDriverException {
@@ -273,7 +233,7 @@ IFieldManager {
 			return false;
 		}
 		st = ((ConnectionJDBC) conex).getConnection().createStatement();
-		st.execute("DROP TABLE " + lyrDef.getComposedTableName() + ";");
+		st.execute("DROP TABLE " + lyrDef.getTableName() + ";");
 		st.close();
 		return true;
 	}
