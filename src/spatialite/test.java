@@ -19,8 +19,43 @@ public class test {
 
 
 	public static void main(String[] args) {
-		retrievingAllFields();
+		getInsertingModifyingDeletingSentences();
+	}
 
+	//It works!
+	private static void getInsertingModifyingDeletingSentences() {
+		try {
+			SpatiaLiteDriver driver = new SpatiaLiteDriver();
+			SpatiaLite spatiaLite = new SpatiaLite();
+			DBLayerDefinition lyrDef = initLayerSpatiaLite();
+			driver.setData(lyrDef.getConnection(), lyrDef);
+			Statement st = ((ConnectionJDBC) lyrDef.getConnection()).getConnection().createStatement();
+			ResultSet rsAux = st.executeQuery("PRAGMA encoding;");
+			rsAux.next();
+			String serverEncoding = rsAux.getString(1);
+			spatiaLite.setEncoding(serverEncoding);
+			IFeatureIterator features = driver.getFeatureIterator(driver.getSqlTotal());
+			while (features.hasNext()) {
+				IFeature feature = features.next();
+				System.out.println(spatiaLite.getSqlInsertFeature(lyrDef, feature));
+				System.out.println(spatiaLite.getSqlModifyFeature(lyrDef, feature));
+				System.out.println(spatiaLite.getSqlDeleteFeature(lyrDef, feature));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	//It works!
+	private static void gettingCompleteCreateTableSql() {
+		try {
+			SpatiaLite spatiaLite = new SpatiaLite();
+			DBLayerDefinition lyrDef = initLayerSpatiaLite();
+			System.out.println(spatiaLite.getSqlCreateSpatialTable(lyrDef, true));
+			System.out.println(spatiaLite.getSqlAddGeometryColumn(lyrDef));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	//It works!
