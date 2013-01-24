@@ -1,4 +1,4 @@
-package spatialite;
+package es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite;
 
 import java.awt.geom.Rectangle2D;
 import java.sql.Connection;
@@ -15,6 +15,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import com.hardcode.gdbms.driver.exceptions.ReadDriverException;
+import com.hardcode.gdbms.driver.exceptions.ReloadDriverException;
 import com.hardcode.gdbms.engine.data.edition.DataWare;
 import com.hardcode.gdbms.engine.values.Value;
 import com.hardcode.gdbms.engine.values.ValueFactory;
@@ -47,8 +48,39 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 	private String strEPSG = null;
 	private SpatiaLite spatiaLite = new SpatiaLite();
 
+	/* (non-Javadoc)
+	 * @see com.iver.cit.gvsig.fmap.drivers.VectorialDriver#reLoad()
+	 */
+	@Override
+	public void reload() throws ReloadDriverException
+	{
+		try {
+			if ((conn == null) || (((ConnectionJDBC)conn).getConnection().isClosed()))
+			{
+				this.load();
+			}
+
+			setData(conn, lyrDef);
+		} catch (SQLException e) {
+			throw new ReloadDriverException(getName(),e);
+		} catch (ReadDriverException e) {
+			throw new ReloadDriverException(getName(),e);
+		} catch (DBException e) {
+			throw new ReloadDriverException(getName(),e);
+		}
+
+	}
+
 	@Override
 	public void open() {
+	}
+
+	static {
+		try {
+			Class.forName("org.sqlite.JDBC");
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	/**
@@ -151,6 +183,16 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 	}
 
 	@Override
+	public String getConnectionString(
+			String host,
+			String port,
+			String dbname,
+			String user,
+			String pw) {
+		return getConnectionStringBeginning() + host;
+	}
+
+	@Override
 	public void setData(IConnection conn, DBLayerDefinition lyrDef)
 			throws DBException {
 		this.conn = conn;
@@ -183,6 +225,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 			sqlTotal = sqlAux;
 			logger.info("Cadena SQL:" + sqlAux);
 			Statement st = ((ConnectionJDBC) conn).getConnection().createStatement();
+			st.execute("SELECT load_extension('/usr/lib/libspatialite.so.3.2.0');");
 			rs = st.executeQuery(sqlAux + " LIMIT " + FETCH_SIZE);
 			fetch_min = 0;
 			fetch_max = FETCH_SIZE - 1;
@@ -211,6 +254,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 
 	}
 
+	@Override
 	public String[] getAllFields(IConnection conn, String table_name) throws DBException {
 		Statement st = null;
 		ResultSet rs = null;
@@ -236,6 +280,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 		}
 	}
 
+	@Override
 	public String[] getAllFieldTypeNames(IConnection conn, String table_name) throws DBException {
 	    Statement st = null;
 	    ResultSet rs = null;
@@ -286,15 +331,15 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 		double yMin = r.getMinY();
 		double xMax = r.getMaxX();
 		double yMax = r.getMaxY();
-		String wktBox = "geomfromewkt('LINESTRING(" + xMin + " " + yMin
+		String wktBox = "geomfromewkt('POLYGON((" + xMin + " " + yMin
 		+ ", " + xMax + " " + yMin + ", " + xMax + " " + yMax + ", "
-		+ xMin + " " + yMax + ")', " + strEPSG + ")";
+		+ xMin + " " + yMax + ", " + xMin + " " + yMin +  "))')";
 		String sqlAux;
 		if (getWhereClause().toUpperCase().indexOf("WHERE") != -1)
-		    sqlAux = getWhereClause() + " AND \"" + getLyrDef().getFieldGeometry() + "\" && " + wktBox;
+		    sqlAux = getWhereClause() + " AND Intersects(\"" + getLyrDef().getFieldGeometry() + "\", " + wktBox + ")";
 		else
-		    sqlAux = "WHERE \"" + getLyrDef().getFieldGeometry() + "\" && "
-			+ wktBox;
+		    sqlAux = "WHERE Intersects(\"" + getLyrDef().getFieldGeometry() + "\", "
+			+ wktBox + ")";
 		return sqlAux;
 	}
 
@@ -331,6 +376,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 	 * principal
 	 * @throws SQLException
 	 */
+	@Override
 	protected void doRelateID_FID() throws DBException
 	{
 		try {
@@ -443,7 +489,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 						.getIdField(lyrDef.getFieldID())]);
 				clonedLyrDef.setIdFieldID(myFieldsDesc.size() - 1);
 			}
-			clonedLyrDef.setFieldsDesc((FieldDescription[]) myFieldsDesc
+			clonedLyrDef.setFieldsDesc(myFieldsDesc
 					.toArray(new FieldDescription[] {}));
 
 			String sqlProv = "SELECT " + strAux + " FROM "
@@ -497,11 +543,24 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 			// y cogemos ese cacho
 			rs.close();
 
-			Statement st = ((ConnectionJDBC)conn).getConnection().createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,
+			Statement st = ((ConnectionJDBC)conn).getConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY,
 			ResultSet.CONCUR_READ_ONLY);
 
 			rs = st.executeQuery(sqlTotal + " LIMIT " + FETCH_SIZE + " OFFSET " + fetch_min);
-
+		}
+		int diff = index - rs.getRow() + 1;
+		if (diff < 0) {
+			Statement st = ((ConnectionJDBC)conn).getConnection().createStatement(ResultSet.TYPE_FORWARD_ONLY,
+			ResultSet.CONCUR_READ_ONLY);
+			rs = st.executeQuery(sqlTotal + " LIMIT " + FETCH_SIZE + " OFFSET " + fetch_min);
+			diff = index - rs.getRow() + 1;
+			for (int i=diff; i>0; i--) {
+				rs.next();
+			}
+		} else {
+			for (int i=diff; i>0; i--) {
+				rs.next();
+			}
 		}
 
 	}
@@ -554,6 +613,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 		return geom;
 	}
 
+	@Override
 	public Value getFieldValue(long rowIndex, int idField)
 	throws ReadDriverException {
 		int index = (int) (rowIndex);
@@ -569,6 +629,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 	/**
 	 * @see com.iver.cit.gvsig.fmap.layers.ReadableVectorial#getFullExtent()
 	 */
+	@Override
 	public Rectangle2D getFullExtent() throws ReadDriverException {
 		if (fullExtent == null) {
 			try {
@@ -695,6 +756,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 		
 	}
 
+	@Override
 	public boolean canRead(IConnection iconn, String tablename) {
 		return true;
 	}

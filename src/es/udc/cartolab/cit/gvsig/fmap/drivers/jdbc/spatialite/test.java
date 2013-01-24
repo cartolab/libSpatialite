@@ -1,4 +1,4 @@
-package spatialite;
+package es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite;
 
 import java.awt.geom.Rectangle2D;
 import java.sql.Connection;
@@ -16,7 +16,6 @@ import com.iver.cit.gvsig.fmap.drivers.IConnection;
 import com.iver.cit.gvsig.fmap.drivers.IFeatureIterator;
 
 public class test {
-
 
 	public static void main(String[] args) {
 		getInsertingModifyingDeletingSentences();
@@ -192,7 +191,6 @@ public class test {
 	private static DBLayerDefinition initLayerSpatiaLite()
 	{
 		SQLiteConfig config = new SQLiteConfig();
-		config.enableLoadExtension(true);
         String dbURL = "jdbc:sqlite:/home/jlopez/spatialite/prueba.sqlite"; // latin1 is the catalog name
         String user = "";
         String pwd = "";

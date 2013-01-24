@@ -1,4 +1,4 @@
-package spatialite;
+package es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite;
 
 import java.io.File;
 import java.io.IOException;
@@ -6,10 +6,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Types;
-
-import javax.swing.JOptionPane;
-
 import org.apache.log4j.Logger;
 
 import com.hardcode.gdbms.driver.exceptions.InitializeWriterException;
@@ -51,6 +47,7 @@ IFieldManager {
 	 * @throws IOException
 	 * @throws DriverException
 	 */
+	@Override
 	public void initialize(ITableDefinition lyrD)
 	throws InitializeWriterException {
 		super.initialize(lyrD);
@@ -78,6 +75,7 @@ IFieldManager {
 
 	}
 
+	@Override
 	public void preProcess() throws StartWriterVisitorException {
 		ResultSet rsAux;
 		try {
@@ -96,6 +94,7 @@ IFieldManager {
 
 	}
 
+	@Override
 	public void process(IRowEdited row) throws ProcessWriterVisitorException {
 		String sqlInsert;
 		try {
@@ -132,7 +131,6 @@ IFieldManager {
 				String sqlDelete = spatiaLite.getSqlDeleteFeature(lyrDef, featD);
 				System.out.println("sql = " + sqlDelete);
 				st.execute(sqlDelete);
-
 				break;
 			}
 		} catch (ProcessVisitorException e) {
@@ -143,6 +141,7 @@ IFieldManager {
 
 	}
 
+	@Override
 	public void postProcess() throws StopWriterVisitorException {
 		try {
 			((ConnectionJDBC) conex).getConnection().setAutoCommit(true);
@@ -151,10 +150,12 @@ IFieldManager {
 		}
 	}
 
+	@Override
 	public String getName() {
 		return "SpatiaLite Writer";
 	}
 
+	@Override
 	public boolean canWriteGeometry(int gvSIGgeometryType) {
 		switch (gvSIGgeometryType) {
 		case FShape.POINT:
@@ -168,6 +169,7 @@ IFieldManager {
 		}
 	}
 
+	@Override
 	public boolean canWriteAttribute(int sqlType) {
 		return true;
 	}
@@ -187,36 +189,44 @@ IFieldManager {
 		bCreateTable = createTable;
 	}
 
+	@Override
 	public FieldDescription[] getOriginalFields() {
 		return lyrDef.getFieldsDesc();
 	}
 
+	@Override
 	public void addField(FieldDescription fieldDesc) {
 		fieldManager.addField(fieldDesc);
 
 	}
 
+	@Override
 	public FieldDescription removeField(String fieldName) {
 		return fieldManager.removeField(fieldName);
 
 	}
 
+	@Override
 	public void renameField(String antName, String newName) {
 		fieldManager.renameField(antName, newName);
 	}
 
+	@Override
 	public boolean alterTable() throws WriteDriverException {
 		return fieldManager.alterTable();
 	}
 
+	@Override
 	public FieldDescription[] getFields() {
 		return fieldManager.getFields();
 	}
 
+	@Override
 	public boolean canAlterTable() {
 		return canSaveEdits();
 	}
 
+	@Override
 	public boolean canSaveEdits() {
 		try {
 			String connUrl = lyrDef.getConnection().getURL();

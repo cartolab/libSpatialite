@@ -1,0 +1,173 @@
+<project name="SQLite Spatial (SpatiaLite) extension" default="generate-without-source" basedir=".">
+
+  <description>Adds the SQLite Spatial (SpatiaLite) driver</description>
+
+  <!-- set global properties for this build -->
+  <property name="src" location="src"/>
+  <property name="build" location="bin"/>
+  <property name="dist"  location="dist"/>
+  <property name="bindist"  location="./install/bin/gvSIG"/>
+  <property name="lib"  location="lib"/>
+  <property name="mainplugin" value="com.iver.cit.gvsig"/>
+  <property name="plugin" value="com.iver.cit.gvsig.spatialite"/>
+  <!-- <property name="drivers-src" value="com.iver.ci
+  t.gvsig.fmap.drivers.jdbc"/> -->
+	  <import file="../binaries/ant/utilities.xml"/>
+  <property name="gvsiglibjar" value="gvsig-jdbcspatial"/>
+  <property name="fmapjar" value="fmap-jdbcspatial"/>
+  <property name="spatialitejar" value="sqlite_spatial"/>
+  <property name="andami" location="../_fwAndami"/>
+  <property name="extensionsDir" location="${andami}/gvSIG/extensiones"/>
+  <property name="drivers-dir" location="${extensionsDir}/${mainplugin}/drivers/jdbc_spatial" />
+
+	<property name="lib-dir" location="${extensionsDir}/${mainplugin}/lib"/>
+	<property name="fmapLibs" location="../libFMap/lib" />
+	<property name="andamiLibs" location="${andami}/lib" />
+	<property name="andamiJar" location="${andami}/andami.jar"/>
+	<property name="gvsigJar" location="${extensionsDir}/${mainplugin}/lib/${mainplugin}.jar"/>
+	<!--<property name="compile-classpath" value="${andamiJar}:${gvsigJar}:${andamiLibs}/beans.jar:${fmapLibs}/cms.jar:${fmapLibs}/driver-manager-1.1.jar:${fmapLibs}/fmap.jar:${fmapLibs}/gdbms-0.8-SNAPSHOT.jar:${andamiLibs}/iver-utiles.jar:${fmapLibs}/jts-1.7.jar:${andamiLibs}/log4j-1.2.8.jar:${fmapLibs}/mysql-connector-java-3.1.7-bin.jar:${fmapLibs}/postgis-jdbc-driver.jar:${fmapLibs}/postgresql-74.213.jar" />-->
+
+  <target name="init">
+    <!-- Create the time stamp -->
+    <tstamp/>
+    <!-- Create the build directory structure used by compile -->
+    <!-- <mkdir dir="${build}"/> -->
+    <mkdir dir="${dist}"/>
+	<mkdir dir="${drivers-dir}" />
+
+  </target>
+
+	  <target name="generate-without-source"
+	  		description="generate the distribution without the source file"
+	  	depends="init,compile,create-jar,copy-to-andami,clean">
+	  </target>
+
+	<!--                     -->
+	<!--                     -->
+	<!--  INSTALLATION TREE  -->
+	<!--                     -->
+	<!--                     -->
+
+	  <target name="generate-install-tree" description="Generate the installation tree." depends="init">
+
+	  	<!-- create dirs -->
+	    <delete dir="${bindist}"/>
+	    <mkdir dir="${bindist}"/>
+	    <mkdir dir="${bindist}/extensiones"/>
+	    <mkdir dir="${bindist}/extensiones/${plugin}"/>
+	    <mkdir dir="${bindist}/extensiones/${mainplugin}/drivers/jdbc_spatial"/>
+
+  		<!-- includes="com/iver/cit/gvsig/fmap/drivers/jdbc/oracle/**" -->
+	  	<!-- put oracle driver in place -->
+	  	<jar jarfile="${bindist}/extensiones/${mainplugin}/drivers/jdbc_spatial/${spatialitejar}.jar"
+	  		basedir="${build}"
+	  		includes="es/udc/cartolab/cit/gvsig/fmap/drivers/jdbc/spatialite/**"
+	  	/>
+
+	  	<!-- copy resource files -->
+	    <copy file="config/config.xml" todir="${bindist}/extensiones/${plugin}"/>
+
+		<copy todir="${bindist}/extensiones/${plugin}">
+			<fileset dir="config" includes="text*.properties"/>
+		</copy>
+
+		<copy todir="${bindist}/extensiones/${plugin}/images">
+			<fileset dir="images/" includes="*"/>
+		</copy>
+
+		<copy todir="${bindist}/extensiones/${plugin}/about">
+			<fileset dir="about/" includes="*"/>
+		</copy>
+
+		<copy todir="${bindist}/extensiones/${plugin}/dbf">
+			<fileset dir="dbf/" includes="*"/>
+		</copy>
+
+	  	<!-- copy lib files to gvsig main lib flder -->
+	  	<!--
+	    <copy todir="${bindist}/extensiones/${mainplugin}/lib">
+			<fileset dir="lib/" includes="ojdbc*.jar"/>
+		</copy>
+	  	-->
+
+    	<!-- PROVISIONAL -->
+	    <copy todir="${bindist}/extensiones/${mainplugin}/lib">
+	  		<fileset dir="${bindist}/extensiones/${mainplugin}/drivers/jdbc_spatial"
+	  			includes="${spatialitejar}.jar"/>
+	    </copy>
+    	<!-- FIN PROVISIONAL -->
+
+	  </target>
+
+	<!--                     -->
+	<!--                     -->
+	<!--  INSTALLATION TREE  -->
+	<!--                     -->
+	<!--                     -->
+
+	<target name="batch-build"
+			description="compile the sources, create the jar file"
+			depends="init,compile,create-jar,copy-to-andami">
+	</target>
+
+	<target name="compile" description="compile the source" >
+		<!-- Compile the Java code from ${src} to ${build} -->
+		<mkdir dir="${build}" />
+		<loadEclipseClasspath project="${basedir}"/>
+		<gvSIG-javac
+			classpath="${eclipseClasspath}"
+		/>
+	</target>
+
+	<target name="create-jar"
+			description="Creates the plugin jar">
+
+	  	<jar jarfile="${dist}/${spatialitejar}.jar" basedir="${build}"
+	  		includes="es/udc/cartolab/cit/gvsig/fmap/drivers/jdbc/spatialite/**"
+	  	/>
+
+	</target>
+
+	<target name="copy-to-andami">
+
+		<copy todir="${lib-dir}"  overwrite="true">
+			<!-- <fileset dir="lib/" includes="sdoapi.jar*"/> -->
+			<fileset dir="lib/" includes="sqlite*.jar*"/>
+		</copy>
+
+<!--	  	<copy todir="${drivers-dir}">
+	  		<fileset dir="${dist}" includes="${driverjar}.jar"/>
+	 	</copy>
+	    <copy todir="${extensionsDir}/${plugin}/">
+	    	<fileset dir="${dist}" excludes="${driverjar}.jar,${driverjar}-driver.jar"/>
+	    </copy>
+	    <copy todir="${lib-dir}">
+	    	<fileset dir="${dist}" includes="${driverjar}-driver.jar"/>
+	    </copy> -->
+
+	  	<copy todir="${drivers-dir}"  overwrite="true">
+	  		<fileset dir="${dist}" includes="${spatialitejar}.jar" />
+	 	</copy>
+	    <copy todir="${extensionsDir}/${plugin}/" overwrite="true">
+	    	<fileset dir="${dist}" includes="${plugin}.jar"/>
+	    	<fileset dir="${dist}" excludes="*.jar"/>
+	    </copy>
+    	<!-- PROVISIONAL -->
+	    <copy todir="${lib-dir}/"  overwrite="true">
+	  		<fileset dir="${dist}" includes="${spatialitejar}.jar"/>
+	    </copy>
+    	<!-- FIN PROVISIONAL -->
+
+	</target>
+
+
+  <target name="clean"
+        description="clean up" >
+    <!-- Delete the ${build} and ${dist} directory trees -->
+	<delete>
+		<fileset dir="${dist}" includes="**/*"/>
+		<fileset dir="${build}" includes="**/*"/>
+	</delete>
+  </target>
+</project>
+

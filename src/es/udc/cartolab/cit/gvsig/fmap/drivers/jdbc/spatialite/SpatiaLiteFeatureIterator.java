@@ -41,7 +41,7 @@
  *   +34 963163400
  *   dac@iver.es
  */
-package spatialite;
+package es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -90,6 +90,7 @@ public class SpatiaLiteFeatureIterator implements IFeatureIterator {
 			st.execute("BEGIN");
 		}
 
+		System.out.println(sql + " LIMIT " + FETCH_SIZE + ";");
 		rs = st.executeQuery(sql + " LIMIT " + FETCH_SIZE + ";");
 		this.sql = sql;
 		numColumns = rs.getMetaData().getColumnCount();
@@ -98,6 +99,7 @@ public class SpatiaLiteFeatureIterator implements IFeatureIterator {
 
 	}
 
+	@Override
 	public boolean hasNext() throws ReadDriverException {
 		try {
 			if (numReg > 0)
@@ -116,6 +118,7 @@ public class SpatiaLiteFeatureIterator implements IFeatureIterator {
 
 	}
 
+	@Override
 	public IFeature next() throws ReadDriverException {
 		byte[] data;
 		try {
@@ -143,14 +146,18 @@ public class SpatiaLiteFeatureIterator implements IFeatureIterator {
 
 	}
 
+	@Override
 	public void closeIterator() throws ReadDriverException {
 		try {
 			st.execute("END");
 			st.close();
+		} catch (SQLException e) {
+		}
+		try {
 			numReg = 0;
 			rs.close();
 		} catch (SQLException e) {
-            throw new ReadDriverException("SpatiaLite Driver",e);
+	        throw new ReadDriverException("SpatiaLite Driver",e);
 		}
 	}
 

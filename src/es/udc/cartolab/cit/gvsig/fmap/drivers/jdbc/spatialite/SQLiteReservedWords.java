@@ -1,4 +1,4 @@
-package spatialite;
+package es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -6,7 +6,7 @@ import java.util.Set;
 public class SQLiteReservedWords {
 	private static Set<String> reserverdWords = new HashSet<String>();
 	
-	static{
+	static {
 		reserverdWords.add("ABORT");
 		reserverdWords.add("ACTION");
 		reserverdWords.add("ADD");
