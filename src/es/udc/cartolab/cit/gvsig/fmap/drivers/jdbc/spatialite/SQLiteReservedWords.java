@@ -3,7 +3,7 @@ package es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite;
 import java.util.HashSet;
 import java.util.Set;
 
-public class SQLiteReservedWords {
+public abstract class SQLiteReservedWords {
 	private static Set<String> reserverdWords = new HashSet<String>();
 	
 	static {
