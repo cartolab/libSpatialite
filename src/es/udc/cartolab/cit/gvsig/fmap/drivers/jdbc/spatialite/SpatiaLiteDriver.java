@@ -232,10 +232,6 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 			metaData = rs.getMetaData();
 			doRelateID_FID();
 
-			//writer.setCreateTable(false);
-			//writer.setWriteAll(false);
-			//writer.initialize(lyrDef);
-
 		} catch (SQLException e) {
 			
 			try {
@@ -336,10 +332,10 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 		+ xMin + " " + yMax + ", " + xMin + " " + yMin +  "))')";
 		String sqlAux;
 		if (getWhereClause().toUpperCase().indexOf("WHERE") != -1)
-		    sqlAux = getWhereClause() + " AND Intersects(\"" + getLyrDef().getFieldGeometry() + "\", " + wktBox + ")";
+		    sqlAux = getWhereClause() + " AND (Intersects(\"" + getLyrDef().getFieldGeometry() + "\", " + wktBox + ") = 1)";
 		else
-		    sqlAux = "WHERE Intersects(\"" + getLyrDef().getFieldGeometry() + "\", "
-			+ wktBox + ")";
+		    sqlAux = "WHERE (Intersects(\"" + getLyrDef().getFieldGeometry() + "\", "
+			+ wktBox + ") = 1)";
 		return sqlAux;
 	}
 
