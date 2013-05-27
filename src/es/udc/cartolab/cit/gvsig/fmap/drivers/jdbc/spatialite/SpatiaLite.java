@@ -1,46 +1,3 @@
-/*
- * Created on 26-oct-2005
- *
- * gvSIG. Sistema de Información Geográfica de la Generalitat Valenciana
- *
- * Copyright (C) 2004 IVER T.I. and Generalitat Valenciana.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * For more information, contact:
- *
- *  Generalitat Valenciana
- *   Conselleria d'Infraestructures i Transport
- *   Av. Blasco Ibáñez, 50
- *   46010 VALENCIA
- *   SPAIN
- *
- *      +34 963862235
- *   gvsig@gva.es
- *      www.gvsig.gva.es
- *
- *    or
- *
- *   IVER T.I. S.A
- *   Salamanca 50
- *   46005 Valencia
- *   Spain
- *
- *   +34 963163400
- *   dac@iver.es
- */
 package es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite;
 
 import java.io.ByteArrayOutputStream;
@@ -71,16 +28,15 @@ import com.iver.cit.gvsig.fmap.drivers.XTypes;
 import com.vividsolutions.jts.geom.Geometry;
 
 /**
- * @author fjp Necesitamos que esta clase no trabaje con funciones estáticas
- *         porque puede haber capas que provengan de distintas bases de datos.
+ * The whole class is based on the gvSIG PostGIS driver.
+ * 
+ * @author Jorge López Fernández (jlopez@cartolab.es)
  */
 public class SpatiaLite {
 
 	private String toEncode;
 
 	/**
-	 * Mover esto a IverUtiles
-	 * 
 	 * @param val
 	 * @return
 	 */
@@ -166,17 +122,14 @@ public class SpatiaLite {
 		return result;
 	}
 
-	/**
-	 * From geotools Adds quotes to an object for storage in postgis. The object
-	 * should be a string or a number. To perform an insert strings need quotes
-	 * around them, and numbers work fine with quotes, so this method can be
-	 * called on unknown objects.
-	 * 
-	 * @param value
-	 *            The object to add quotes to.
-	 * 
-	 * @return a string representation of the object with quotes.
-	 */
+	    /**
+     * From geotools Adds quotes to an object for storage in spatialite.
+     * 
+     * @param value
+     *            The object to add quotes to.
+     * 
+     * @return a string representation of the object with quotes.
+     */
 	protected String addQuotes(Object value) {
 		String retString;
 
@@ -194,10 +147,6 @@ public class SpatiaLite {
 	}
 
 	/**
-	 * FIXME: Maybe we don't need to test if encoding to the database is
-	 * possible or not. This conversion may be slow. But in the other hand, the
-	 * user may be able to store his data and don't lose all the changes...
-	 * 
 	 * @param obj
 	 * @return
 	 */
@@ -221,10 +170,6 @@ public class SpatiaLite {
 	}
 
 	/**
-	 * Based in code from JUMP (VividSolutions) and Geotools Things to be aware:
-	 * We always will use Spatial Tables with Unique ID. IFeature has the same
-	 * field order than dbLayerDef.getFieldNames()
-	 * 
 	 * @param dbLayerDef
 	 * @param feat
 	 * @return
@@ -444,11 +389,6 @@ public class SpatiaLite {
 	}
 
 	/**
-	 * TODO: NECESITAMOS OTRO MÉTODO PARA BORRAR CORRECTAMENTE. Esto provocará
-	 * errores, ya que getID que viene en un row no nos sirve dentro de un
-	 * writer para modificar y/o borrar entidades Por ahora, cojo el ID del
-	 * campo que me indica el dbLayerDef
-	 * 
 	 * @param dbLayerDef
 	 * @param feat
 	 * @return
