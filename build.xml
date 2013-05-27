@@ -3,17 +3,18 @@
     	Users management and DB Connection extension
     </description>
   <!-- set global properties for this build -->
-  <property name="src" location="src/es/udc/cartolab/gvsig"/>
+  <property name="src" location="src/es/udc/cartolab/gvsig/spatiaLiteConnector"/>
   <property name="build" location="bin"/>
   <property name="dist"  location="dist"/>
   <property name="extensionsDir" location="../_fwAndami/gvSIG/extensiones"/>
   <property name="mainplugin" value="com.iver.cit.gvsig"/>
   <property name="spatialitejar" value="sqlite_spatial"/>
+  <property name="sqlitejar" value="sqlite-jdbc-3.7.15"/>
   <property name="plugin" value="es.udc.cartolab.gvsig.sqliteUsers"/>
   <property name="andami" location="../_fwAndami" />
   <property name="drivers-dir" location="${extensionsDir}/${mainplugin}/drivers/jdbc_spatial" />
   <property name="lib-dir" location="${extensionsDir}/${mainplugin}/lib"/>
-  <property name="lib-dir" location="${extensionsDir}/${mainplugin}/lib"/>
+  <property name="lib" location="lib"/>
 
   <target name="init">
     <!-- Create the time stamp -->
@@ -29,35 +30,11 @@
     <!-- Create the distribution directory -->
     <mkdir dir="${dist}"/>
   	<mkdir dir="${dist}/lib"/>
-  	
-  	<!-- <copy file="config/about.htm" todir="${dist}" overwrite="yes"/> -->
   	  	
     <!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
 	<copy todir="${dist}/lib">
   	    	<fileset dir="lib" includes="*"/>
-  	</copy>  	
-
-  	<jar jarfile="${dist}/lib/${plugin}.jar" basedir="${build}" includes="es/udc/cartolab/**"
-    />
-  	<jar update="true" jarfile="${dist}/lib/${plugin}.jar" basedir="images" includes="*"/>
-  	
-  	<copy todir="${dist}/images">
-  	    	<fileset dir="images" includes="*"/>
   	</copy>
-
-  	<copy file="config/config.xml" todir="${dist}"/>
-    <copy todir="${dist}">
-    	<fileset dir="config" includes="text*.properties"/>
-    </copy>
-  	
-  	<mkdir dir="${dist}/forms"/>
-  	<copy todir="${dist}/forms">
-  	   	<fileset dir="forms"/> 
-  	</copy>
-  	
-    <move todir="${extensionsDir}/${plugin}/">
-    	<fileset dir="${dist}" includes="**/**"/>
-    </move>
 
   	<jar jarfile="${dist}/${spatialitejar}.jar" basedir="${build}"
   		includes="es/udc/cartolab/cit/gvsig/fmap/drivers/jdbc/spatialite/**"
@@ -69,6 +46,7 @@
 
     <copy todir="${lib-dir}/"  overwrite="true">
   		<fileset dir="${dist}" includes="${spatialitejar}.jar"/>
+  	    <fileset dir="${lib}" includes="${sqlitejar}.jar"/>
     </copy>
   </target>
 
@@ -84,24 +62,6 @@
 			classpath="${compile-classpath}"/>
 	</target>
 
-	<target name="copy-data-files">
-	    <copy file="config/config.xml" todir="${dist}"/>
-		<copy todir="${dist}">
-			<fileset dir="config" includes="text*.properties"/>
-		</copy>
-		
-	  	<mkdir dir="${dist}/forms"/>
-	  	<copy todir="${dist}/forms">
-	      	<fileset dir="forms"/> 
-	    </copy>
-	</target>
-
-	<target name="move-to-andami">
-	   <move todir="${extensionsDir}/${plugin}/">
-	    	<fileset dir="${dist}" includes="**/**"/>
-	    </move>
-	</target>
-
 	<target name="copy-driver-to-andami">
 	  	<copy todir="${drivers-dir}"  overwrite="true">
 	  		<fileset dir="${dist}" includes="${spatialitejar}.jar" />
@@ -109,6 +69,7 @@
 	
 	    <copy todir="${lib-dir}/"  overwrite="true">
 	  		<fileset dir="${dist}" includes="${spatialitejar}.jar"/>
+	  	    <fileset dir="${lib}" includes="${sqlitejar}.jar"/>
 	    </copy>
 	</target>
 
