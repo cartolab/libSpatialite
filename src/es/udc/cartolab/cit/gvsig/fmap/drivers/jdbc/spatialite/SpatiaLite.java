@@ -40,7 +40,7 @@ public class SpatiaLite {
 	 * @param val
 	 * @return
 	 */
-	public boolean isNumeric(Value val) {
+	public static boolean isNumeric(Value val) {
 
 		switch (val.getSQLType()) {
 		case Types.DOUBLE:
@@ -53,6 +53,30 @@ public class SpatiaLite {
 		case Types.TINYINT:
 			return true;
 		}
+
+		return false;
+	}
+
+	/**
+	 * @param val
+	 * @return
+	 */
+	public static boolean isGeometryType(String val) {
+
+		if (val.compareToIgnoreCase("POINT") == 0)
+			return true;
+		else if (val.compareToIgnoreCase("LINESTRING") == 0)
+			return true;
+		else if (val.compareToIgnoreCase("POLYGON") == 0)
+			return true;
+		else if (val.compareToIgnoreCase("MULTIPOINT") == 0)
+			return true;
+		else if (val.compareToIgnoreCase("MULTILINESTRING") == 0)
+			return true;
+		else if (val.compareToIgnoreCase("MULTILINESTRINGM") == 0) // MCoord
+			return true;
+		else if (val.compareToIgnoreCase("MULTIPOLYGON") == 0)
+			return true;
 
 		return false;
 	}
