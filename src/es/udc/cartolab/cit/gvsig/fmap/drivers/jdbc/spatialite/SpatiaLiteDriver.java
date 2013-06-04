@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import com.hardcode.gdbms.driver.exceptions.InitializeWriterException;
 import com.hardcode.gdbms.driver.exceptions.ReadDriverException;
 import com.hardcode.gdbms.driver.exceptions.ReloadDriverException;
 import com.hardcode.gdbms.engine.data.edition.DataWare;
@@ -31,12 +32,15 @@ import com.iver.cit.gvsig.fmap.drivers.FieldDescription;
 import com.iver.cit.gvsig.fmap.drivers.IConnection;
 import com.iver.cit.gvsig.fmap.drivers.IFeatureIterator;
 import com.iver.cit.gvsig.fmap.drivers.WKBParser3;
+import com.iver.cit.gvsig.fmap.edition.IWriteable;
+import com.iver.cit.gvsig.fmap.edition.IWriter;
 
-public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject{
+public class SpatiaLiteDriver extends DefaultJDBCDriver implements
+		ICanReproject, IWriteable {
 
 	private static Logger logger = Logger.getLogger(SpatiaLiteDriver.class
 			.getName());
-	private static final String NAME = "SpatiaLite JDBC Driver";
+	public static final String NAME = "SpatiaLite JDBC Driver";
 	private WKBParser3 parser = new WKBParser3();
 	private String originalEPSG = null;
 	private static int FETCH_SIZE = 5000;
@@ -47,6 +51,15 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 	private String sqlOrig;
 	private String strEPSG = null;
 	private SpatiaLite spatiaLite = new SpatiaLite();
+	private SpatiaLiteWriter writer = new SpatiaLiteWriter();
+
+	static {
+		try {
+			Class.forName("org.sqlite.JDBC");
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
 	/* (non-Javadoc)
 	 * @see com.iver.cit.gvsig.fmap.drivers.VectorialDriver#reLoad()
@@ -73,14 +86,6 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 
 	@Override
 	public void open() {
-	}
-
-	static {
-		try {
-			Class.forName("org.sqlite.JDBC");
-		} catch (ClassNotFoundException e) {
-			throw new RuntimeException(e);
-		}
 	}
 
 	/**
@@ -232,6 +237,10 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 			metaData = rs.getMetaData();
 			doRelateID_FID();
 
+			writer.setCreateTable(false);
+			writer.setWriteAll(false);
+			writer.initialize(lyrDef);
+
 		} catch (SQLException e) {
 			
 			try {
@@ -245,6 +254,8 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 			} catch (SQLException e1) {
 				throw new DBException(e);
 			}
+			throw new DBException(e);
+		} catch (InitializeWriterException e) {
 			throw new DBException(e);
 		}
 
@@ -306,7 +317,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 
 	@Override
 	public boolean isWritable() {
-		return true;
+		return writer.canSaveEdits();
 	}
 
 	@Override
@@ -385,8 +396,6 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 			Statement s = ((ConnectionJDBC) getConnection()).getConnection()
 			.createStatement();
 			ResultSet r = s.executeQuery(strSQL);
-			int id = 0;
-			int gid;
 			int index = 0;
 			while (r.next()) {
 				String aux = r.getString(1);
@@ -760,6 +769,11 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements ICanReproject
 	@Override
 	public boolean canReproject(String toEPSGdestinyProjection) {
 		return false;
+	}
+
+	@Override
+	public IWriter getWriter() {
+		return writer;
 	}
 
 }
