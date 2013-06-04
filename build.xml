@@ -9,10 +9,11 @@
   <property name="extensionsDir" location="../_fwAndami/gvSIG/extensiones"/>
   <property name="mainplugin" value="com.iver.cit.gvsig"/>
   <property name="spatialitejar" value="sqlite_spatial"/>
-  <property name="sqlitejar" value="sqlite-jdbc-3.7.15"/>
+  <property name="sqlitejar" value="sqlite"/>
+  <property name="sqlitelibjar" value="sqlite-jdbc-3.7.15"/>
   <property name="plugin" value="es.udc.cartolab.gvsig.sqliteUsers"/>
   <property name="andami" location="../_fwAndami" />
-  <property name="drivers-dir" location="${extensionsDir}/${mainplugin}/drivers/jdbc_spatial" />
+  <property name="drivers-dir" location="${extensionsDir}/${mainplugin}/drivers" />
   <property name="lib-dir" location="${extensionsDir}/${mainplugin}/lib"/>
   <property name="lib" location="lib"/>
 
@@ -40,13 +41,23 @@
   		includes="es/udc/cartolab/cit/gvsig/fmap/drivers/jdbc/spatialite/**"
   	/>
 
-  	<copy todir="${drivers-dir}"  overwrite="true">
+  	<jar jarfile="${dist}/${sqlitejar}.jar" basedir="${build}"
+  		includes="es/udc/cartolab/com/hardcode/gdbms/driver/sqlite/**"
+  	/>
+
+  	<copy todir="${drivers-dir}/jdbc_spatial"  overwrite="true">
   		<fileset dir="${dist}" includes="${spatialitejar}.jar" />
+ 	</copy>
+
+    <mkdir dir="${drivers-dir}/sqlite"/>
+  	<copy todir="${drivers-dir}/sqlite"  overwrite="true">
+  		<fileset dir="${dist}" includes="${sqlitejar}.jar" />
  	</copy>
 
     <copy todir="${lib-dir}/"  overwrite="true">
   		<fileset dir="${dist}" includes="${spatialitejar}.jar"/>
-  	    <fileset dir="${lib}" includes="${sqlitejar}.jar"/>
+  		<fileset dir="${dist}" includes="${sqlitejar}.jar"/>
+  	    <fileset dir="${lib}" includes="${sqlitelibjar}.jar"/>
     </copy>
   </target>
 
@@ -63,13 +74,19 @@
 	</target>
 
 	<target name="copy-driver-to-andami">
-	  	<copy todir="${drivers-dir}"  overwrite="true">
+	  	<copy todir="${drivers-dir}/jdbc_spatial"  overwrite="true">
 	  		<fileset dir="${dist}" includes="${spatialitejar}.jar" />
+	 	</copy>
+
+	    <mkdir dir="${drivers-dir}/sqlite"/>
+	  	<copy todir="${drivers-dir}/sqlite"  overwrite="true">
+	  		<fileset dir="${dist}" includes="${sqlitejar}.jar" />
 	 	</copy>
 	
 	    <copy todir="${lib-dir}/"  overwrite="true">
 	  		<fileset dir="${dist}" includes="${spatialitejar}.jar"/>
-	  	    <fileset dir="${lib}" includes="${sqlitejar}.jar"/>
+	  		<fileset dir="${dist}" includes="${sqlitejar}.jar"/>
+	  	    <fileset dir="${lib}" includes="${sqlitelibjar}.jar"/>
 	    </copy>
 	</target>
 
