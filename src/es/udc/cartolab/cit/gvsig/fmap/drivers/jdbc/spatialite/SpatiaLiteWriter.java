@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+
 import org.apache.log4j.Logger;
 
 import com.hardcode.gdbms.driver.exceptions.InitializeWriterException;
@@ -80,6 +81,10 @@ IFieldManager {
 		ResultSet rsAux;
 		try {
 			((ConnectionJDBC) conex).getConnection().rollback();
+		} catch (SQLException e) {
+			// There probably was no transaction in course...
+		}
+		try {
 			alterTable();
 			rsAux = st.executeQuery("PRAGMA encoding;");
 			rsAux.next();
