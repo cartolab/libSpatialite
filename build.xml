@@ -10,7 +10,7 @@
   <property name="mainplugin" value="com.iver.cit.gvsig"/>
   <property name="spatialitejar" value="sqlite_spatial"/>
   <property name="sqlitejar" value="sqlite"/>
-  <property name="sqlitelibjar" value="sqlite-jdbc-3.7.15"/>
+  <property name="sqlitelibjar" value="sqlite-jdbc-3.7.15-SNAPSHOT"/>
   <property name="plugin" value="es.udc.cartolab.gvsig.sqliteUsers"/>
   <property name="andami" location="../_fwAndami" />
   <property name="drivers-dir" location="${extensionsDir}/${mainplugin}/drivers" />

@@ -15,6 +15,6 @@
 	<classpathentry kind="src" path="/_fwAndami"/>
 	<classpathentry kind="lib" path="lib/formsrt.jar"/>
 	<classpathentry kind="lib" path="/_fwAndami/lib/org.gvsig.ui.jar" sourcepath="/libUIComponent/src"/>
-	<classpathentry kind="lib" path="lib/sqlite-jdbc-3.7.15.jar"/>
+	<classpathentry kind="lib" path="lib/sqlite-jdbc-3.7.15-SNAPSHOT.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
