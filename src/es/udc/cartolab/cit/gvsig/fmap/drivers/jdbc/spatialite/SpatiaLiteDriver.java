@@ -230,7 +230,6 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 					+ getLyrDef().getFieldID();
 
 			sqlTotal = sqlAux;
-			logger.info("Cadena SQL:" + sqlAux);
 			Statement st = ((ConnectionJDBC) conn).getConnection().createStatement();
 			String spatialiteLibPath = "gvSIG" + File.separator + "extensiones"
 					+ File.separator + "com.iver.cit.gvsig" + File.separator
@@ -239,7 +238,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 			if (osName.equals("Linux")) {
 				spatialiteLibPath += "libspatialite.so.3.2.0";
 			} else if (osName.equals("Windows")) {
-				spatialiteLibPath += "libspatialite-4.dll";
+				spatialiteLibPath += "libspatialite-1.dll";
 			} else {
 				throw new DBException(new SQLException(
 						"We provide no support for SpatiaLite for the OS '"
