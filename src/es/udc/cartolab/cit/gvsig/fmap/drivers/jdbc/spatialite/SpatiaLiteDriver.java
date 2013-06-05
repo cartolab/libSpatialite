@@ -1,6 +1,7 @@
 package es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite;
 
 import java.awt.geom.Rectangle2D;
+import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,6 +14,7 @@ import java.util.Hashtable;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.sqlite.OSInfo;
 
 import com.hardcode.gdbms.driver.exceptions.InitializeWriterException;
 import com.hardcode.gdbms.driver.exceptions.ReadDriverException;
@@ -230,7 +232,27 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 			sqlTotal = sqlAux;
 			logger.info("Cadena SQL:" + sqlAux);
 			Statement st = ((ConnectionJDBC) conn).getConnection().createStatement();
-			st.execute("SELECT load_extension('/usr/lib/libspatialite.so.3.2.0');");
+			String spatialiteLibPath = "gvSIG" + File.separator + "extensiones"
+					+ File.separator + "com.iver.cit.gvsig" + File.separator
+					+ "lib" + File.separator;
+			String osName = OSInfo.getOSName();
+			if (osName.equals("Linux")) {
+				spatialiteLibPath += "libspatialite.so.3.2.0";
+			} else if (osName.equals("Windows")) {
+				spatialiteLibPath += "libspatialite-4.dll";
+			} else {
+				throw new DBException(new SQLException(
+						"We provide no support for SpatiaLite for the OS '"
+								+ osName + "'"));
+			}
+			File spatialiteLib = new File(spatialiteLibPath);
+			if (!spatialiteLib.canRead()) {
+				throw new DBException(new SQLException(
+						"Can't read the SpatiaLite library in '"
+								+ spatialiteLib.getAbsolutePath() + "'"));
+			}
+			st.execute("SELECT load_extension('"
+					+ spatialiteLib.getAbsolutePath() + "');");
 			rs = st.executeQuery(sqlAux + " LIMIT " + FETCH_SIZE);
 			fetch_min = 0;
 			fetch_max = FETCH_SIZE - 1;

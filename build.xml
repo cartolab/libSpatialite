@@ -11,6 +11,8 @@
   <property name="spatialitejar" value="sqlite_spatial"/>
   <property name="sqlitejar" value="sqlite"/>
   <property name="sqlitelibjar" value="sqlite-jdbc-3.7.15-SNAPSHOT"/>
+  <property name="spatialiteliblin" value="libspatialite.so.3.2.0"/>
+  <property name="spatialitelibwin" value="libspatialite-4.dll"/>
   <property name="plugin" value="es.udc.cartolab.gvsig.sqliteUsers"/>
   <property name="andami" location="../_fwAndami" />
   <property name="drivers-dir" location="${extensionsDir}/${mainplugin}/drivers" />
@@ -45,6 +47,7 @@
   		includes="es/udc/cartolab/com/hardcode/gdbms/driver/sqlite/**"
   	/>
 
+    <mkdir dir="${drivers-dir}/jdbc_spatial"/>
   	<copy todir="${drivers-dir}/jdbc_spatial"  overwrite="true">
   		<fileset dir="${dist}" includes="${spatialitejar}.jar" />
  	</copy>
@@ -58,6 +61,8 @@
   		<fileset dir="${dist}" includes="${spatialitejar}.jar"/>
   		<fileset dir="${dist}" includes="${sqlitejar}.jar"/>
   	    <fileset dir="${lib}" includes="${sqlitelibjar}.jar"/>
+  	    <fileset dir="${lib}" includes="${spatialiteliblin}"/>
+  	  	<fileset dir="${lib}" includes="${spatialitelibwin}"/>
     </copy>
   </target>
 
@@ -74,6 +79,7 @@
 	</target>
 
 	<target name="copy-driver-to-andami">
+	    <mkdir dir="${drivers-dir}/jdbc_spatial"/>
 	  	<copy todir="${drivers-dir}/jdbc_spatial"  overwrite="true">
 	  		<fileset dir="${dist}" includes="${spatialitejar}.jar" />
 	 	</copy>
@@ -87,6 +93,8 @@
 	  		<fileset dir="${dist}" includes="${spatialitejar}.jar"/>
 	  		<fileset dir="${dist}" includes="${sqlitejar}.jar"/>
 	  	    <fileset dir="${lib}" includes="${sqlitelibjar}.jar"/>
+	  	    <fileset dir="${lib}" includes="${spatialiteliblin}"/>
+	  	  	<fileset dir="${lib}" includes="${spatialitelibwin}"/>
 	    </copy>
 	</target>
 
