@@ -58,6 +58,33 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 	static {
 		try {
 			Class.forName("org.sqlite.JDBC");
+			// We try to manually load the SQLite library
+			String libsPath = "gvSIG" + File.separator + "extensiones"
+					+ File.separator + "com.iver.cit.gvsig" + File.separator
+					+ "lib" + File.separator;
+			String osName = OSInfo.getOSName(), path;
+			if (osName.equals("Windows")) {
+				path = new File(libsPath + "libproj-0.dll").getAbsolutePath();
+				System.load(path);
+				logger.info("Loaded the Proj library from: " + path);
+
+				path = new File(libsPath + "libgeos-3-1-1.dll")
+						.getAbsolutePath();
+				System.load(path);
+				logger.info("Loaded the Geos library from: " + path);
+
+				path = new File(libsPath + "libgeos_c-1.dll").getAbsolutePath();
+				System.load(path);
+				logger.info("Loaded the Geos_c library from: " + path);
+
+				path = new File(libsPath + "libcharset1.dll").getAbsolutePath();
+				System.load(path);
+				logger.info("Loaded the Charset library from: " + path);
+
+				path = new File(libsPath + "libiconv2.dll").getAbsolutePath();
+				System.load(path);
+				logger.info("Loaded the Iconv library from: " + path);
+			}
 		} catch (ClassNotFoundException e) {
 			throw new RuntimeException(e);
 		}
