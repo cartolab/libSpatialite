@@ -63,6 +63,27 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 					+ File.separator + "com.iver.cit.gvsig" + File.separator
 					+ "lib" + File.separator;
 			String osName = OSInfo.getOSName(), path;
+			if (osName.equals("Linux")) {
+				path = new File(libsPath + "libproj.so.0.7.0")
+						.getAbsolutePath();
+				System.load(path);
+				logger.info("Loaded the Proj library from: " + path);
+
+				path = new File(libsPath + "libgeos-3.3.8.so")
+						.getAbsolutePath();
+				System.load(path);
+				logger.info("Loaded the Geos library from: " + path);
+
+				path = new File(libsPath + "libgeos_c.so.1.7.8")
+						.getAbsolutePath();
+				System.load(path);
+				logger.info("Loaded the Geos_c library from: " + path);
+
+				path = new File(libsPath + "libfreexl.so.1.0.0")
+						.getAbsolutePath();
+				System.load(path);
+				logger.info("Loaded the Freexl library from: " + path);
+			}
 			if (osName.equals("Windows")) {
 				path = new File(libsPath + "libproj-0.dll").getAbsolutePath();
 				System.load(path);
