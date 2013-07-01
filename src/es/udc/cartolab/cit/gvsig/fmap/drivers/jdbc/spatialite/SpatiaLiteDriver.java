@@ -43,6 +43,10 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 	private static Logger logger = Logger.getLogger(SpatiaLiteDriver.class
 			.getName());
 	public static final String NAME = "SpatiaLite JDBC Driver";
+	private static String libsPath = "gvSIG" + File.separator
+			+ "extensiones" + File.separator + "com.iver.cit.gvsig"
+			+ File.separator + "lib" + File.separator;
+	private static boolean dependenciesChecked = false;
 	private WKBParser3 parser = new WKBParser3();
 	private String originalEPSG = null;
 	private static int FETCH_SIZE = 5000;
@@ -55,13 +59,33 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 	private SpatiaLite spatiaLite = new SpatiaLite();
 	private SpatiaLiteWriter writer = new SpatiaLiteWriter();
 
-	static {
-		try {
-			Class.forName("org.sqlite.JDBC");
+	public SpatiaLiteDriver() {
+		this(true);
+	}
+
+	public SpatiaLiteDriver(boolean checkDependencies, String libsPath) {
+		super();
+		SpatiaLiteDriver.libsPath = libsPath;
+		if (checkDependencies) {
+			loadSystemDependencies();
+		}
+	}
+
+	public SpatiaLiteDriver(boolean checkDependencies) {
+		super();
+		if (checkDependencies) {
+			loadSystemDependencies();
+		}
+	}
+
+	private static void loadSystemDependencies() {
+		if (!dependenciesChecked) {
+			try {
+				Class.forName("org.sqlite.JDBC");
+			} catch (ClassNotFoundException e) {
+				throw new RuntimeException(e);
+			}
 			// We try to manually load the SQLite library
-			String libsPath = "gvSIG" + File.separator + "extensiones"
-					+ File.separator + "com.iver.cit.gvsig" + File.separator
-					+ "lib" + File.separator;
 			String osName = OSInfo.getOSName(), path;
 			if (osName.equals("Linux")) {
 				path = new File(libsPath + "libproj.so.0.7.0")
@@ -106,8 +130,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 				System.load(path);
 				logger.info("Loaded the Iconv library from: " + path);
 			}
-		} catch (ClassNotFoundException e) {
-			throw new RuntimeException(e);
+			dependenciesChecked = true;
 		}
 	}
 
@@ -279,20 +302,17 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 
 			sqlTotal = sqlAux;
 			Statement st = ((ConnectionJDBC) conn).getConnection().createStatement();
-			String spatialiteLibPath = "gvSIG" + File.separator + "extensiones"
-					+ File.separator + "com.iver.cit.gvsig" + File.separator
-					+ "lib" + File.separator;
 			String osName = OSInfo.getOSName();
+			File spatialiteLib;
 			if (osName.equals("Linux")) {
-				spatialiteLibPath += "libspatialite.so.3.2.0";
+				spatialiteLib = new File(libsPath + "libspatialite.so.3.2.0");
 			} else if (osName.equals("Windows")) {
-				spatialiteLibPath += "libspatialite-1.dll";
+				spatialiteLib = new File(libsPath + "libspatialite-1.dll");
 			} else {
 				throw new DBException(new SQLException(
 						"We provide no support for SpatiaLite for the OS '"
 								+ osName + "'"));
 			}
-			File spatialiteLib = new File(spatialiteLibPath);
 			if (!spatialiteLib.canRead()) {
 				throw new DBException(new SQLException(
 						"Can't read the SpatiaLite library in '"
