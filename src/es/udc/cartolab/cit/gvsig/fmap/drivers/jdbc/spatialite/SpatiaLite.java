@@ -255,10 +255,10 @@ public class SpatiaLite {
 					new Exception());
 		// MCoord
 		if (((type & FShape.M) != 0) && ((type & FShape.MULTIPOINT) == 0)) {
-			sqlBuf.append(" geomfromewkt( '"
-					+ ((FShapeM) geometry.getInternalShape()).toText() + "', "
+			sqlBuf.append(" geomfromewkt( 'SRID="
 					+ DefaultJDBCDriver.removePrefix(dbLayerDef.getSRID_EPSG())
-					+ ")");
+					+ ";" + ((FShapeM) geometry.getInternalShape()).toText()
+					+ "')");
 		} else
 		// ZCoord
 		if ((type & FShape.Z) != 0) {
@@ -266,12 +266,12 @@ public class SpatiaLite {
 				// TODO: Metodo toText 3D o 2DM
 			} else {
 				// Its not a multipoint
-				sqlBuf.append(" geomfromewkt( '"
-						+ ((FShape3D) feat.getGeometry().getInternalShape())
-								.toText()
-						+ "', "
+				sqlBuf.append(" geomfromewkt( 'SRID="
 						+ DefaultJDBCDriver.removePrefix(dbLayerDef
-								.getSRID_EPSG()) + ")");
+								.getSRID_EPSG())
+						+ ";"
+						+ ((FShape3D) feat.getGeometry().getInternalShape())
+								.toText() + "')");
 			}
 
 		}
@@ -282,9 +282,9 @@ public class SpatiaLite {
 				throw new ProcessVisitorException("incorrect_geometry",
 						new Exception());
 			}
-			sqlBuf.append(" geomfromewkt( '" + jtsGeom.toText() + "', "
+			sqlBuf.append(" geomfromewkt( 'SRID="
 					+ DefaultJDBCDriver.removePrefix(dbLayerDef.getSRID_EPSG())
-					+ ")");
+					+ ";" + jtsGeom.toText() + "')");
 		}
 		sqlBuf.append(" );");
 		sql = sqlBuf.toString();
@@ -372,12 +372,12 @@ public class SpatiaLite {
 			// MCoord
 			int type = feat.getGeometry().getGeometryType();
 			if ((type == FShape.M) && (type != FShape.MULTIPOINT)) {
-				sqlBuf.append(" geomfromewkt('"
-						+ ((FShapeM) feat.getGeometry().getInternalShape())
-								.toText()
-						+ "', "
+				sqlBuf.append(" geomfromewkt( 'SRID="
 						+ DefaultJDBCDriver.removePrefix(dbLayerDef
-								.getSRID_EPSG()) + ")");
+								.getSRID_EPSG())
+						+ ";"
+						+ ((FShapeM) feat.getGeometry().getInternalShape())
+								.toText() + "')");
 			} else {
 				// ZCoord
 				if (type == FShape.Z) {
@@ -385,23 +385,23 @@ public class SpatiaLite {
 						// TODO: Metodo toText 3D o 2DM
 					} else {
 						// Its not a multipoint
-						sqlBuf.append(" geomfromewkt('"
-								+ ((FShape3D) feat.getGeometry()
-										.getInternalShape()).toText()
-								+ "', "
+						sqlBuf.append(" geomfromewkt( 'SRID="
 								+ DefaultJDBCDriver.removePrefix(dbLayerDef
-										.getSRID_EPSG()) + ")");
+										.getSRID_EPSG())
+								+ ";"
+								+ ((FShape3D) feat.getGeometry()
+										.getInternalShape()).toText() + "')");
 					}
 
 				}
 
 				// XYCoord
 				else {
-					sqlBuf.append(" geomfromewkt('"
-							+ feat.getGeometry().toJTSGeometry().toText()
-							+ "', "
+					sqlBuf.append(" geomfromewkt( 'SRID="
 							+ DefaultJDBCDriver.removePrefix(dbLayerDef
-									.getSRID_EPSG()) + ")");
+									.getSRID_EPSG()) + ";"
+							+ feat.getGeometry().toJTSGeometry().toText()
+							+ "')");
 				}
 			}
 		}
