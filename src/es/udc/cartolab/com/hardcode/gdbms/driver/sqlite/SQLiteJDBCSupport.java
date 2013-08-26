@@ -27,7 +27,7 @@ public class SQLiteJDBCSupport implements ReadAccess {
 	private int rowCount = -1;
 	private Connection conn = null;
 	private String sql = null;
-	private int curIndex = 0;
+	private int curIndex = -1;
 
 	/**
 	 * Creates a new JDBCSupport object.
@@ -51,10 +51,10 @@ public class SQLiteJDBCSupport implements ReadAccess {
 
 		try {
 			fieldId += 1;
-			if (rowIndex > curIndex) {
+			if (rowIndex < curIndex) {
 				resultSet = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY,
 						ResultSet.CONCUR_READ_ONLY).executeQuery(sql);
-				curIndex = 0;
+				curIndex = -1;
 			}
 			while ((curIndex < rowIndex) && resultSet.next()) {
 				curIndex++;
