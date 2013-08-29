@@ -211,6 +211,9 @@ public class SQLiteJDBCSupport implements ReadAccess {
 	 */
 	public long getRowCount() throws ReadDriverException {
 		try {
+			if (conn.isClosed()) {
+				return 0;
+			}
 			resultSet = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY,
 					ResultSet.CONCUR_READ_ONLY).executeQuery(sql);
 			if (rowCount == -1) {
@@ -221,6 +224,10 @@ public class SQLiteJDBCSupport implements ReadAccess {
 				rowCount = n;
 				curIndex = rowCount - 1;
 			}
+			// We execute the statement again as they are forward only and the
+			// previous one has already navigated the whole table
+			resultSet = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY,
+					ResultSet.CONCUR_READ_ONLY).executeQuery(sql);
 			return rowCount;
 		} catch (SQLException e) {
 			throw new RuntimeException(e);
