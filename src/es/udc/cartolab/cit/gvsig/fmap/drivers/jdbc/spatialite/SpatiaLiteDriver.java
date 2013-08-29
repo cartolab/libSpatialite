@@ -10,10 +10,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.sqlite.Conn;
 import org.sqlite.OSInfo;
 
 import com.hardcode.gdbms.driver.exceptions.InitializeWriterException;
@@ -46,6 +49,8 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 	private static String libsPath = "gvSIG" + File.separator
 			+ "extensiones" + File.separator + "com.iver.cit.gvsig"
 			+ File.separator + "lib" + File.separator;
+	protected static Map<String, Connection> conns = new HashMap<String, Connection>();
+	protected static String latestHost = null;
 	private static boolean dependenciesChecked = false;
 	private WKBParser3 parser = new WKBParser3();
 	private String originalEPSG = null;
@@ -61,6 +66,29 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 
 	public SpatiaLiteDriver() {
 		this(true);
+	}
+
+	public static Connection getConnection(String host) {
+		if (!conns.containsKey(host)) {
+			return null;
+		}
+		return conns.get(host);
+	}
+
+	public static void updateConnection(String host, Connection conn) {
+		conns.put(host, conn);
+	}
+
+	public static void closeAllConnections() {
+		for (Connection conn : conns.values()) {
+			if (conn instanceof Conn) {
+				try {
+					((Conn) conn).realClose();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 
 	public SpatiaLiteDriver(boolean checkDependencies, String libsPath) {
@@ -274,6 +302,9 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 	public void setData(IConnection conn, DBLayerDefinition lyrDef)
 			throws DBException {
 		this.conn = conn;
+		conns.put(conn.getURL()
+				.replaceFirst(getConnectionStringBeginning(), ""),
+				((ConnectionJDBC) conn).getConnection());
 		// TODO: Deberíamos poder quitar Conneciton de la llamada y meterlo
 		// en lyrDef desde el principio.
 

@@ -11,6 +11,8 @@ import com.hardcode.gdbms.driver.exceptions.ReadDriverException;
 import com.hardcode.gdbms.engine.data.driver.AbstractJDBCDriver;
 import com.hardcode.gdbms.engine.values.Value;
 
+import es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite.SpatiaLiteDriver;
+
 public class SQLiteDriver extends AbstractJDBCDriver {
 
 	public final static String NAME = "SQLite Alphanumeric";
@@ -39,9 +41,15 @@ public class SQLiteDriver extends AbstractJDBCDriver {
 	@Override
 	public Connection getConnection(String host, int port, String dbName,
 			String user, String password) throws SQLException {
+		Connection aux = SpatiaLiteDriver.getConnection(host);
+		if (aux != null) {
+			return aux;
+		}
 		String connString = "jdbc:sqlite:" + host;
 
-		return DriverManager.getConnection(connString);
+		Connection conn = DriverManager.getConnection(connString);
+		SpatiaLiteDriver.updateConnection(host, conn);
+		return conn;
 	}
 
 	@Override

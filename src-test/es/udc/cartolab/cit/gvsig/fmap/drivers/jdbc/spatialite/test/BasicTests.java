@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -12,6 +13,7 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.sqlite.Conn;
 
 import com.hardcode.gdbms.driver.exceptions.ReadDriverException;
 import com.iver.cit.gvsig.fmap.drivers.ConnectionFactory;
@@ -42,8 +44,8 @@ public class BasicTests {
 	}
 
 	@After
-	public void closeConnection() throws DBException {
-		conn.close();
+	public void closeConnection() throws SQLException {
+		((Conn) conn.getConnection()).realClose();
 	}
 
 	/**

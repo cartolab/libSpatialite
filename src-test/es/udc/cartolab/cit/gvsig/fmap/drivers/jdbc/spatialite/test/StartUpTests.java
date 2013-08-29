@@ -1,9 +1,11 @@
 package es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite.test;
 
 import java.io.File;
+import java.sql.SQLException;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.sqlite.Conn;
 
 import com.iver.cit.gvsig.fmap.drivers.ConnectionFactory;
 import com.iver.cit.gvsig.fmap.drivers.ConnectionJDBC;
@@ -39,7 +41,7 @@ public class StartUpTests {
 	 * methods from the included library.
 	 */
 	@Test
-	public void dbConnectionTest() throws DBException {
+	public void dbConnectionTest() throws DBException, SQLException {
 		File file = new File(TestUtils.testDataPath);
 		String connectionString = driver.getConnectionString(
 				file.getAbsolutePath(), "", "", "", "");
@@ -49,7 +51,7 @@ public class StartUpTests {
 				"", "");
 
 		conn.getConnection();
-		conn.close();
+		((Conn) conn.getConnection()).realClose();
 	}
 	
 }
