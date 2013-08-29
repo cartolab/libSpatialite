@@ -87,7 +87,7 @@ public class SQLiteDriver extends AbstractJDBCDriver {
 
 	@Override
 	public void close() throws SQLException {
-		jdbcSupport.close();
+		sqliteJdbcSupport.close();
 		jdbcWriter.close();
 	}
 
