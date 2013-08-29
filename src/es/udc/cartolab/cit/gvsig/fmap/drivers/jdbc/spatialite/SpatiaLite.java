@@ -137,8 +137,9 @@ public class SpatiaLite {
 			strGeometryFieldType = "GEOMETRY";
 		}
 
-		String result = "SELECT AddGeometryColumn('" + dbLayerDef.getTableName()
-				+ "', '" + dbLayerDef.getFieldGeometry() + "', "
+		String result = "SELECT AddGeometryColumn('"
+				+ dbLayerDef.getTableName() + "', '"
+				+ dbLayerDef.getFieldGeometry() + "', "
 				+ DefaultJDBCDriver.removePrefix(dbLayerDef.getSRID_EPSG())
 				+ ", '" + strGeometryFieldType + "', "
 				+ dbLayerDef.getDimension() + ");";
@@ -146,14 +147,14 @@ public class SpatiaLite {
 		return result;
 	}
 
-	    /**
-     * From geotools Adds quotes to an object for storage in spatialite.
-     * 
-     * @param value
-     *            The object to add quotes to.
-     * 
-     * @return a string representation of the object with quotes.
-     */
+	/**
+	 * From geotools Adds quotes to an object for storage in spatialite.
+	 * 
+	 * @param value
+	 *            The object to add quotes to.
+	 * 
+	 * @return a string representation of the object with quotes.
+	 */
 	protected String addQuotes(Object value) {
 		String retString;
 
@@ -349,11 +350,11 @@ public class SpatiaLite {
 				Value val = feat.getAttribute(i);
 				if (val != null) {
 					if (isNumeric(val)) {
-					sqlBuf.append(" " + "\"" + name + "\"" + " = " + val
-							+ " ,");
-					} else {
-						sqlBuf.append(" " + "\"" + name + "\"" + " = " + addQuotes(val)
+						sqlBuf.append(" " + "\"" + name + "\"" + " = " + val
 								+ " ,");
+					} else {
+						sqlBuf.append(" " + "\"" + name + "\"" + " = "
+								+ addQuotes(val) + " ,");
 					}
 				}
 			}
@@ -417,7 +418,8 @@ public class SpatiaLite {
 	 * @param feat
 	 * @return
 	 */
-	public String getSqlDeleteFeature(DBLayerDefinition dbLayerDef, IFeature feat) {
+	public String getSqlDeleteFeature(DBLayerDefinition dbLayerDef,
+			IFeature feat) {
 		// DELETE FROM weather WHERE city = 'Hayward';
 		// TODO: NECESITAMOS OTRO MÉTODO PARA BORRAR CORRECTAMENTE.
 		// Esto provocará errores, ya que getID que viene en un row no
