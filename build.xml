@@ -13,17 +13,6 @@
   <property name="spatialitejar" value="sqlite_spatial"/>
   <property name="sqlitejar" value="sqlite"/>
   <property name="sqlitelibjar" value="sqlite-jdbc-3.7.15-SNAPSHOT"/>
-  <property name="spatialiteliblin" value="libspatialite.so.3.2.0"/>
-  <property name="spatialitelibwin" value="libspatialite-1.dll"/>
-  <property name="charsetlibwin" value="libcharset1.dll"/>
-  <property name="geoslibwin" value="libgeos-3-1-1.dll"/>
-  <property name="geosclibwin" value="libgeos_c-1.dll"/>
-  <property name="iconvlibwin" value="libiconv2.dll"/>
-  <property name="projlibwin" value="libproj-0.dll"/>
-  <property name="freexlliblin" value="libfreexl.so.1.0.0"/>
-  <property name="geosliblin" value="libgeos-3.3.8.so"/>
-  <property name="geoscliblin" value="libgeos_c.so.1.7.8"/>
-  <property name="projliblin" value="libproj.so.0.7.0"/>
   <property name="plugin" value="es.udc.cartolab.gvsig.sqliteUsers"/>
   <property name="andami" location="../_fwAndami" />
   <property name="drivers-dir" location="${extensionsDir}/${mainplugin}/drivers" />
@@ -83,18 +72,8 @@
     <copy todir="${lib-dir}/"  overwrite="true">
   		<fileset dir="${dist}" includes="${spatialitejar}.jar"/>
   		<fileset dir="${dist}" includes="${sqlitejar}.jar"/>
-  	    <fileset dir="${lib}" includes="${sqlitelibjar}.jar"/>
-  	    <fileset dir="${lib}" includes="${spatialiteliblin}"/>
-  	  	<fileset dir="${lib}" includes="${spatialitelibwin}"/>
-  	  	<fileset dir="${lib}" includes="${charsetlibwin}"/>
-  	  	<fileset dir="${lib}" includes="${geoslibwin}"/>
-  	  	<fileset dir="${lib}" includes="${geosclibwin}"/>
-  	  	<fileset dir="${lib}" includes="${iconvlibwin}"/>
-  	  	<fileset dir="${lib}" includes="${projlibwin}"/>
-  	  	<fileset dir="${lib}" includes="${geosliblin}"/>
-  	  	<fileset dir="${lib}" includes="${geoscliblin}"/>
-  	  	<fileset dir="${lib}" includes="${freexlliblin}"/>
-  	  	<fileset dir="${lib}" includes="${projliblin}"/>
+  	    <fileset dir="${lib}" includes="*.dll"/>
+  	    <fileset dir="${lib}" includes="*.so.*"/>
     </copy>
   </target>
 
@@ -141,17 +120,8 @@
 	  		<fileset dir="${dist}" includes="${spatialitejar}.jar"/>
 	  		<fileset dir="${dist}" includes="${sqlitejar}.jar"/>
 	  	    <fileset dir="${lib}" includes="${sqlitelibjar}.jar"/>
-	  	    <fileset dir="${lib}" includes="${spatialiteliblin}"/>
-	  	  	<fileset dir="${lib}" includes="${spatialitelibwin}"/>
-	  	  	<fileset dir="${lib}" includes="${charsetlibwin}"/>
-	  	  	<fileset dir="${lib}" includes="${geoslibwin}"/>
-	  	  	<fileset dir="${lib}" includes="${geosclibwin}"/>
-	  	  	<fileset dir="${lib}" includes="${iconvlibwin}"/>
-	  	  	<fileset dir="${lib}" includes="${projlibwin}"/>
-	  	  	<fileset dir="${lib}" includes="${geosliblin}"/>
-	  	  	<fileset dir="${lib}" includes="${geoscliblin}"/>
-	  	  	<fileset dir="${lib}" includes="${freexlliblin}"/>
-	  	  	<fileset dir="${lib}" includes="${projliblin}"/>
+	  	    <fileset dir="${lib}" includes="*.dll"/>
+	  	    <fileset dir="${lib}" includes="*.so.*"/>
 	    </copy>
 	</target>
 
@@ -174,10 +144,10 @@
 		  </classpath>
 			<test name="es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite.test.TestSuite"/>
 			<!-- Formatter for printing all outputs --> 
-			<!-- <formatter
+			<formatter
 		    type="brief"
 		    usefile="false"
-		    /> -->
+		    />
 		</junit>
 	</target>
 

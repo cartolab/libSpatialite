@@ -113,7 +113,8 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 			} catch (ClassNotFoundException e) {
 				throw new RuntimeException(e);
 			}
-			// We try to manually load the SQLite library
+			// We try to manually load the SQLite library and all the
+			// dependencies needed by it and SpatiaLite
 			String osName = OSInfo.getOSName(), path;
 			if (osName.equals("Linux")) {
 				path = new File(libsPath + "libproj.so.0.7.0")
@@ -121,27 +122,53 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 				System.load(path);
 				logger.info("Loaded the Proj library from: " + path);
 
-				path = new File(libsPath + "libgeos-3.3.8.so")
-						.getAbsolutePath();
-				System.load(path);
-				logger.info("Loaded the Geos library from: " + path);
-
-				path = new File(libsPath + "libgeos_c.so.1.7.8")
-						.getAbsolutePath();
-				System.load(path);
-				logger.info("Loaded the Geos_c library from: " + path);
-
 				path = new File(libsPath + "libfreexl.so.1.0.0")
 						.getAbsolutePath();
 				System.load(path);
 				logger.info("Loaded the Freexl library from: " + path);
+
+				path = new File(libsPath + "libgeos.so.3.3.2")
+						.getAbsolutePath();
+				System.load(path);
+				logger.info("Loaded the Geos library from: " + path);
+
+				path = new File(libsPath + "libgeos_c.so.1.7.2")
+						.getAbsolutePath();
+				System.load(path);
+				logger.info("Loaded the Geos_c library from: " + path);
+
+				path = new File(libsPath + "libsqlite3.so.0.8.6")
+						.getAbsolutePath();
+				System.load(path);
+				logger.info("Loaded the SQLite3 library from: " + path);
 			}
 			if (osName.equals("Windows")) {
 				path = new File(libsPath + "libproj-0.dll").getAbsolutePath();
 				System.load(path);
 				logger.info("Loaded the Proj library from: " + path);
 
-				path = new File(libsPath + "libgeos-3-1-1.dll")
+				path = new File(libsPath + "libgcc_s_dw2-1.dll")
+						.getAbsolutePath();
+				System.load(path);
+				logger.info("Loaded the GCC_s library from: " + path);
+
+				path = new File(libsPath + "libcharset1.dll").getAbsolutePath();
+				System.load(path);
+				logger.info("Loaded the Charset library from: " + path);
+
+				path = new File(libsPath + "libiconv-2.dll").getAbsolutePath();
+				System.load(path);
+				logger.info("Loaded the Iconv library from: " + path);
+
+				path = new File(libsPath + "libfreexl-1.dll").getAbsolutePath();
+				System.load(path);
+				logger.info("Loaded the Freexl library from: " + path);
+
+				path = new File(libsPath + "libstdc++-6.dll").getAbsolutePath();
+				System.load(path);
+				logger.info("Loaded the Stdc++ library from: " + path);
+
+				path = new File(libsPath + "libgeos-3-3-2.dll")
 						.getAbsolutePath();
 				System.load(path);
 				logger.info("Loaded the Geos library from: " + path);
@@ -150,13 +177,10 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 				System.load(path);
 				logger.info("Loaded the Geos_c library from: " + path);
 
-				path = new File(libsPath + "libcharset1.dll").getAbsolutePath();
+				path = new File(libsPath + "libsqlite3-0.dll")
+						.getAbsolutePath();
 				System.load(path);
-				logger.info("Loaded the Charset library from: " + path);
-
-				path = new File(libsPath + "libiconv2.dll").getAbsolutePath();
-				System.load(path);
-				logger.info("Loaded the Iconv library from: " + path);
+				logger.info("Loaded the SQLite3 library from: " + path);
 			}
 			dependenciesChecked = true;
 		}
@@ -338,7 +362,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 			if (osName.equals("Linux")) {
 				spatialiteLib = new File(libsPath + "libspatialite.so.3.2.0");
 			} else if (osName.equals("Windows")) {
-				spatialiteLib = new File(libsPath + "libspatialite-1.dll");
+				spatialiteLib = new File(libsPath + "libspatialite-3.dll");
 			} else {
 				throw new DBException(new SQLException(
 						"We provide no support for SpatiaLite for the OS '"
