@@ -72,6 +72,7 @@
     <copy todir="${lib-dir}/"  overwrite="true">
   		<fileset dir="${dist}" includes="${spatialitejar}.jar"/>
   		<fileset dir="${dist}" includes="${sqlitejar}.jar"/>
+  		<fileset dir="${lib}" includes="${sqlitelibjar}.jar"/>
   	    <fileset dir="${lib}" includes="*.dll"/>
   	    <fileset dir="${lib}" includes="*.so.*"/>
     </copy>
