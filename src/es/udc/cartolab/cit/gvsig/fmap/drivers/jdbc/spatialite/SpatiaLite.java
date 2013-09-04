@@ -19,6 +19,7 @@ import com.iver.cit.gvsig.fmap.core.IFeature;
 import com.iver.cit.gvsig.fmap.core.IGeometry;
 import com.iver.cit.gvsig.fmap.core.IGeometry3D;
 import com.iver.cit.gvsig.fmap.core.IGeometryM;
+import com.iver.cit.gvsig.fmap.core.IRow;
 import com.iver.cit.gvsig.fmap.core.ShapeFactory;
 import com.iver.cit.gvsig.fmap.core.ShapeMFactory;
 import com.iver.cit.gvsig.fmap.drivers.DBLayerDefinition;
@@ -419,7 +420,7 @@ public class SpatiaLite {
 	 * @return
 	 */
 	public String getSqlDeleteFeature(DBLayerDefinition dbLayerDef,
-			IFeature feat) {
+ IRow row) {
 		// DELETE FROM weather WHERE city = 'Hayward';
 		// TODO: NECESITAMOS OTRO MÉTODO PARA BORRAR CORRECTAMENTE.
 		// Esto provocará errores, ya que getID que viene en un row no
@@ -430,7 +431,7 @@ public class SpatiaLite {
 		String sql = null;
 		int indexFieldId = dbLayerDef.getIdFieldID();
 		sqlBuf.append("\"" + dbLayerDef.getFieldID() + "\"" + " = "
-				+ feat.getAttribute(indexFieldId).toString() + ";");
+				+ row.getAttribute(indexFieldId).toString() + ";");
 		sql = sqlBuf.toString();
 
 		return sql;

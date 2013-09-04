@@ -132,8 +132,8 @@ IFieldManager {
 				}
 				break;
 			case IRowEdited.STATUS_DELETED:
-				IFeature featD = (IFeature) row.getLinkedRow();
-				String sqlDelete = spatiaLite.getSqlDeleteFeature(lyrDef, featD);
+				String sqlDelete = spatiaLite.getSqlDeleteFeature(lyrDef,
+						row.getLinkedRow());
 				System.out.println("sql = " + sqlDelete);
 				st.execute(sqlDelete);
 				break;
