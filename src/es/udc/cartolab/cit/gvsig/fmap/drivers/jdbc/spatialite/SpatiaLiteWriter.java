@@ -39,6 +39,7 @@ IFieldManager {
 	private boolean bWriteAll;
 	private SpatiaLite spatiaLite = new SpatiaLite();
 	private JdbcFieldManager fieldManager;
+	private static Logger logger = Logger.getLogger("LibSpatiaLite");
 
 	/**
 	 * Useful to create a layer from scratch 
@@ -115,12 +116,12 @@ IFieldManager {
 				IFeature featM = (IFeature) row.getLinkedRow();
 				if (bWriteAll) {
 					sqlInsert = spatiaLite.getSqlInsertFeature(lyrDef, featM);
-					System.out.println("sql = " + sqlInsert);
+					logger.info("sql = " + sqlInsert);
 					st.execute(sqlInsert);
 				} else {
 					String sqlModify = spatiaLite.getSqlModifyFeature(lyrDef,
 							featM);
-					System.out.println("sql = " + sqlModify);
+					logger.info("sql = " + sqlModify);
 					st.execute(sqlModify);
 				}
 				break;
@@ -128,13 +129,14 @@ IFieldManager {
 				IFeature featO = (IFeature) row.getLinkedRow();
 				if (bWriteAll) {
 					sqlInsert = spatiaLite.getSqlInsertFeature(lyrDef, featO);
+					logger.info("sql = " + sqlInsert);
 					st.execute(sqlInsert);
 				}
 				break;
 			case IRowEdited.STATUS_DELETED:
 				String sqlDelete = spatiaLite.getSqlDeleteFeature(lyrDef,
 						row.getLinkedRow());
-				System.out.println("sql = " + sqlDelete);
+				logger.info("sql = " + sqlDelete);
 				st.execute(sqlDelete);
 				break;
 			}
