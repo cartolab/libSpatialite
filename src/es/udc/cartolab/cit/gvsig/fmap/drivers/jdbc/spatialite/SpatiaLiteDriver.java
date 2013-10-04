@@ -862,7 +862,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 			if (metaData.getColumnType(fieldId) == Types.VARCHAR)
 				return ValueFactory.createValue(aRs.getString(fieldId));
 			if (metaData.getColumnType(fieldId) == Types.FLOAT)
-				return ValueFactory.createValue(aRs.getFloat(fieldId));
+				return ValueFactory.createValue(aRs.getDouble(fieldId));
 			if (metaData.getColumnType(fieldId) == Types.INTEGER)
 				return ValueFactory.createValue(aRs.getInt(fieldId));
 		}
