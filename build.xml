@@ -27,12 +27,12 @@
     <pathelement location="${lib}/hamcrest-core-1.3.jar" />
   </path>
 
+	<target name="batch-build" depends="init, compile, generate-without-source">
+	</target>
   <target name="init">
-    <!-- Create the time stamp -->
     <tstamp/>
-    <!-- Create the build directory structure used by compile -->
     <mkdir dir="${build}"/>
-    <mkdir dir="${dist}"/>
+    <mkdir dir="${dist}/lib"/>
 
   </target>
 
@@ -40,11 +40,8 @@
 	  	description="Generates the distribution without the source file and executes all the included tests"
 	  	depends="generate-without-source, test" />
 
-  <target name="generate-without-source"
-  		description="generate the distribution without the source file">
-    <!-- Create the distribution directory -->
-    <mkdir dir="${dist}"/>
-  	<mkdir dir="${dist}/lib"/>
+  <target name="generate-without-source" depends="init">
+    
   	  	
     <!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
 	<copy todir="${dist}/lib">
@@ -79,18 +76,10 @@
   </target>
 
 
-	<target name="compile" description="compile the source" >
-		<!-- Compile the Java code from ${src} to ${build} -->
-		<loadEclipseClasspath project="${basedir}" />
-		<mkdir dir="${build}" />
-		<echo>${eclipseClasspath}</echo>
-		<javac  srcdir="${src}"
-			destdir="${build}"
-			debug="${debug}"
-			debuglevel="${debuglevel}"
-			classpath="${eclipseClasspath}"
-			includeantruntime="false"/>
-	</target>
+	<target name="compile" description="compile the source">
+			<loadEclipseClasspath project="${basedir}" />
+			<gvSIG-javac classpath="${eclipseClasspath}" />
+		</target>
 
 
 	<target name="compile-tests" description="compile the tests source" >
