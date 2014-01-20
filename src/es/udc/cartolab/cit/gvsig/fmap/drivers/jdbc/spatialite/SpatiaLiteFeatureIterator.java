@@ -50,6 +50,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import com.hardcode.gdbms.driver.exceptions.ReadDriverException;
+import com.hardcode.gdbms.engine.values.DoubleValue;
+import com.hardcode.gdbms.engine.values.FloatValue;
 import com.hardcode.gdbms.engine.values.Value;
 import com.iver.cit.gvsig.fmap.core.DefaultFeature;
 import com.iver.cit.gvsig.fmap.core.IFeature;
@@ -131,11 +133,22 @@ public class SpatiaLiteFeatureIterator implements IFeatureIterator {
 
 			IFeature feat = null;
 			if (idFieldID != -1) {
-				String theID = columnValues[idFieldID].toString();
+				String theID;
+				Value auxVal = columnValues[idFieldID];
+				// There is a minor problem with the id value, because it's read
+				// as a double (e.g. 1.0) but it was stored inside the hashmap
+				// as an integer, so here we have to transform it into an int
+				if (auxVal instanceof DoubleValue) {
+					theID = new Integer(((DoubleValue) auxVal).intValue())
+							.toString();
+				} else if (auxVal instanceof FloatValue) {
+					theID = new Integer(((FloatValue) auxVal).intValue())
+							.toString();
+				} else {
+					theID = auxVal.toString();
+				}
 				feat = new DefaultFeature(geom, columnValues.clone(), theID);
-			}
-			else
-			{
+			} else {
 				throw new ReadDriverException("SpatiaLite Driver",null);
 			}
 			numReg++;
