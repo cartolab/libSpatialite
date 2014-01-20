@@ -27,6 +27,7 @@ import com.hardcode.gdbms.engine.values.Value;
 import com.hardcode.gdbms.engine.values.ValueFactory;
 import com.iver.cit.gvsig.fmap.core.FShape;
 import com.iver.cit.gvsig.fmap.core.ICanReproject;
+import com.iver.cit.gvsig.fmap.core.IFeature;
 import com.iver.cit.gvsig.fmap.core.IGeometry;
 import com.iver.cit.gvsig.fmap.drivers.ConnectionJDBC;
 import com.iver.cit.gvsig.fmap.drivers.DBException;
@@ -879,6 +880,20 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 	@Override
 	public int[] getPrimaryKeys() {
 		return null;
+	}
+
+	@Override
+	public int getRowIndexByFID(IFeature FID) {
+		// There is a minor problem with the id value, because it's read as a
+		// double (e.g. 1.0) but it was stored inside the hashmap as an integer,
+		// so here we have to parse the id value as a double and transform it
+		// into an int
+		try {
+		FID.setID(new Integer(Double.valueOf(FID.getID()).intValue())
+				.toString());
+		} catch (NumberFormatException e) {
+		}
+		return super.getRowIndexByFID(FID);
 	}
 
 	@Override
