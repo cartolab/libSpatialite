@@ -546,8 +546,8 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 				String aux = r.getString(1);
 				Value val = ValueFactory.createValue(aux);
 				hashRelate.put(val, new Integer(index));
-				logger.info("ASOCIANDO CLAVE " + aux + " CON VALOR "
-						+ index);
+				// logger.info("ASOCIANDO CLAVE " + aux + " CON VALOR "
+				// + index);
 				index++;
 			}
 			numReg = index;
