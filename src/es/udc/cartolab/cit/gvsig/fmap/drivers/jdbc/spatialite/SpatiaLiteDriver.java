@@ -774,7 +774,10 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 			// as a double (e.g. 1.0) but it was stored inside the hashmap
 			// as an integer, so here we have to transform it into an int
 			if (getLyrDef().getIdFieldID() == idField) {
+				try {
 				auxValue = ValueFactory.createValue(new Double(auxValue.toString()).intValue());
+				} catch (NumberFormatException e) {
+				}
 			}
 			return auxValue;
 		} catch (SQLException e) {

@@ -138,10 +138,12 @@ public class SpatiaLiteFeatureIterator implements IFeatureIterator {
 				// There is a minor problem with the id value, because it's read
 				// as a double (e.g. 1.0) but it was stored inside the hashmap
 				// as an integer, so here we have to transform it into an int
-				if (auxVal instanceof DoubleValue) {
+				if ((auxVal instanceof DoubleValue)
+						&& (auxVal.toString().length() > 0)) {
 					theID = new Integer(((DoubleValue) auxVal).intValue())
 							.toString();
-				} else if (auxVal instanceof FloatValue) {
+				} else if ((auxVal instanceof FloatValue)
+						&& (auxVal.toString().length() > 0)) {
 					theID = new Integer(((FloatValue) auxVal).intValue())
 							.toString();
 				} else {
