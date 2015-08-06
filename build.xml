@@ -85,6 +85,7 @@
 	<target name="compile-tests" description="compile the tests source" >
 		<!-- Compile the Java code from ${src} to ${build} -->
 		<loadEclipseClasspath project="${basedir}" />
+		<delete dir="${build-test}" />
 		<mkdir dir="${build-test}" />
 		<echo>${eclipseClasspath}</echo>
 		<javac srcdir="${src-test}"
