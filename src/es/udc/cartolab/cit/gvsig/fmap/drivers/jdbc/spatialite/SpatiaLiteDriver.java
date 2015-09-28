@@ -8,16 +8,20 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-import org.sqlite.Conn;
-import org.sqlite.OSInfo;
+import org.sqlite.SQLiteConnection;
+import org.sqlite.core.CoreConnection;
+import org.sqlite.util.OSInfo;
 
 import com.hardcode.gdbms.driver.exceptions.InitializeWriterException;
 import com.hardcode.gdbms.driver.exceptions.ReadDriverException;
@@ -81,9 +85,10 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 
 	public static void closeAllConnections() {
 		for (Connection conn : conns.values()) {
-			if (conn instanceof Conn) {
+			if (conn instanceof SQLiteConnection) {
 				try {
-					((Conn) conn).realClose();
+					((CoreConnection) conn).realClose();
+					//((SQLiteConnection) conn).close();
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}
@@ -122,28 +127,23 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 				System.load(path);
 				logger.info("Loaded the Proj library from: " + path);
 
-				path = new File(libsPath + "libfreexl.so.1.0.0")
+				path = new File(libsPath + "libfreexl.so.1.1.0")
 						.getAbsolutePath();
 				System.load(path);
 				logger.info("Loaded the Freexl library from: " + path);
 
-				path = new File(libsPath + "libgeos.so.3.3.2")
+				path = new File(libsPath + "libgeos.so.3.4.2")
 						.getAbsolutePath();
 				System.load(path);
 				logger.info("Loaded the Geos library from: " + path);
 
-				path = new File(libsPath + "libgeos_c.so.1.7.2")
+				path = new File(libsPath + "libgeos_c.so.1.8.2")
 						.getAbsolutePath();
 				System.load(path);
 				logger.info("Loaded the Geos_c library from: " + path);
-
-				path = new File(libsPath + "libsqlite3.so.0.8.6")
-						.getAbsolutePath();
-				System.load(path);
-				logger.info("Loaded the SQLite3 library from: " + path);
 			}
 			if (osName.equals("Windows")) {
-				path = new File(libsPath + "libproj-0.dll").getAbsolutePath();
+				path = new File(libsPath + "libproj-9.dll").getAbsolutePath();
 				System.load(path);
 				logger.info("Loaded the Proj library from: " + path);
 
@@ -151,10 +151,6 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 						.getAbsolutePath();
 				System.load(path);
 				logger.info("Loaded the GCC_s library from: " + path);
-
-				path = new File(libsPath + "libcharset1.dll").getAbsolutePath();
-				System.load(path);
-				logger.info("Loaded the Charset library from: " + path);
 
 				path = new File(libsPath + "libiconv-2.dll").getAbsolutePath();
 				System.load(path);
@@ -168,7 +164,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 				System.load(path);
 				logger.info("Loaded the Stdc++ library from: " + path);
 
-				path = new File(libsPath + "libgeos-3-3-2.dll")
+				path = new File(libsPath + "libgeos-3-5-0.dll")
 						.getAbsolutePath();
 				System.load(path);
 				logger.info("Loaded the Geos library from: " + path);
@@ -177,10 +173,17 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 				System.load(path);
 				logger.info("Loaded the Geos_c library from: " + path);
 
-				path = new File(libsPath + "libsqlite3-0.dll")
-						.getAbsolutePath();
+				path = new File(libsPath + "liblzma-5.dll").getAbsolutePath();
 				System.load(path);
-				logger.info("Loaded the SQLite3 library from: " + path);
+				logger.info("Loaded the LZM Algorithm library from: " + path);
+
+				path = new File(libsPath + "zlib1.dll").getAbsolutePath();
+				System.load(path);
+				logger.info("Loaded the ZLib from: " + path);
+
+				path = new File(libsPath + "libxml2-2.dll").getAbsolutePath();
+				System.load(path);
+				logger.info("Loaded the XML library from: " + path);
 			}
 			dependenciesChecked = true;
 		}
@@ -341,6 +344,9 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 
 		try {
 			((ConnectionJDBC) conn).getConnection().setAutoCommit(false);
+			if (((ConnectionJDBC) conn).getConnection() instanceof SQLiteConnection) {
+				((SQLiteConnection) ((ConnectionJDBC) conn).getConnection()).db().enable_load_extension(true);
+			}
 			sqlOrig = "SELECT " + getTotalFields() + " FROM "
 			+ getLyrDef().getComposedTableName() + " ";
 			// + getLyrDef().getWhereClause();
@@ -359,10 +365,24 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 			Statement st = ((ConnectionJDBC) conn).getConnection().createStatement();
 			String osName = OSInfo.getOSName();
 			File spatialiteLib;
+			String path;
 			if (osName.equals("Linux")) {
-				spatialiteLib = new File(libsPath + "libspatialite.so.3.2.0");
+				spatialiteLib = new File(libsPath + "mod_spatialite.so.7.1.0");
+				path = spatialiteLib.getAbsolutePath();
+				//path = path.substring(0, path.length() - 3);
 			} else if (osName.equals("Windows")) {
-				spatialiteLib = new File(libsPath + "libspatialite-3.dll");
+				spatialiteLib = new File(libsPath + "mod_spatialite.dll");
+				path = spatialiteLib.getAbsolutePath();
+
+				/** FIX FOR SQLITE BUG
+				 * 
+				 *  Recent versions of SQLite appear to have a bug
+				 *  where they don't accept the Windows path separator (\)
+				 *  as the last separator of an extension path. Previous separators
+				 *  can be either / or \, mixed in any way. 
+				 */
+				path = path.replace("\\mod_spatialite.dll", "/mod_spatialite.dll");
+				//path = path.substring(0, path.length() - 4);
 			} else {
 				throw new DBException(new SQLException(
 						"We provide no support for SpatiaLite for the OS '"
@@ -373,8 +393,12 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 						"Can't read the SpatiaLite library in '"
 								+ spatialiteLib.getAbsolutePath() + "'"));
 			}
-			st.execute("SELECT load_extension('"
-					+ spatialiteLib.getAbsolutePath() + "');");
+			String query = "SELECT load_extension('" + path + "');";
+			logger.info(query);
+			//rs = st.executeQuery("SELECT sqlite_version();");
+			//rs.next();
+			//logger.info(rs.getString(1));
+			st.execute(query);
 			rs = st.executeQuery(sqlAux + " LIMIT " + FETCH_SIZE);
 			fetch_min = 0;
 			fetch_max = FETCH_SIZE - 1;
@@ -866,18 +890,120 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 	public static Value getFieldValue(ResultSet aRs, int fieldId) throws SQLException {
 		ResultSetMetaData metaData = aRs.getMetaData();
 		byte[] byteBuf = aRs.getBytes(fieldId);
+		Value value = null;
 		if (byteBuf == null)
 			return ValueFactory.createNullValue();
 		else {
-			if (metaData.getColumnType(fieldId) == Types.VARCHAR)
-				return ValueFactory.createValue(aRs.getString(fieldId));
-			if (metaData.getColumnType(fieldId) == Types.FLOAT)
-				return ValueFactory.createValue(aRs.getDouble(fieldId));
-			if (metaData.getColumnType(fieldId) == Types.INTEGER)
-				return ValueFactory.createValue(aRs.getInt(fieldId));
-		}
+			int colType = metaData.getColumnType(fieldId);
 
-		return ValueFactory.createNullValue();
+			switch (colType) {
+			case Types.BIGINT:
+				value = ValueFactory.createValue(aRs.getLong(fieldId));
+
+				break;
+
+			case Types.BIT:
+			case Types.BOOLEAN:
+				value = ValueFactory.createValue(aRs.getBoolean(fieldId));
+
+				break;
+
+			case Types.CHAR:
+			case Types.VARCHAR:
+			case Types.LONGVARCHAR:
+				String auxString = aRs.getString(fieldId);
+				if (auxString != null) {
+					value = ValueFactory.createValue(auxString);
+				}
+
+				break;
+
+			case Types.DATE:
+				Date auxDate = aRs.getDate(fieldId);
+				if (auxDate != null) {
+					value = ValueFactory.createValue(auxDate);
+				}
+
+				break;
+
+			case Types.DECIMAL:
+			case Types.NUMERIC:
+			case Types.FLOAT:
+			case Types.DOUBLE:
+				value = ValueFactory.createValue(aRs.getDouble(fieldId));
+
+				break;
+
+			case Types.INTEGER:
+				value = ValueFactory.createValue(aRs.getInt(fieldId));
+
+				break;
+
+			case Types.REAL:
+				value = ValueFactory.createValue(aRs.getFloat(fieldId));
+
+				break;
+
+			case Types.SMALLINT:
+				value = ValueFactory.createValue(aRs.getShort(fieldId));
+
+				break;
+
+			case Types.TINYINT:
+				value = ValueFactory.createValue(aRs.getByte(fieldId));
+
+				break;
+
+			case Types.BINARY:
+			case Types.VARBINARY:
+			case Types.LONGVARBINARY:
+				byte[] auxByteArray = aRs.getBytes(fieldId);
+				if (auxByteArray != null) {
+					value = ValueFactory.createValue(auxByteArray);
+				}
+
+				break;
+
+			case Types.TIMESTAMP:
+				try {
+					Timestamp auxTimeStamp = aRs.getTimestamp(fieldId);
+					value = ValueFactory.createValue(auxTimeStamp);
+				} catch (SQLException e) {
+					value = ValueFactory.createValue(new Timestamp(0));
+				}
+
+				break;
+
+			case Types.TIME:
+				try {
+					Time auxTime = aRs.getTime(fieldId);
+					value = ValueFactory.createValue(auxTime);
+				} catch (SQLException e) {
+					value = ValueFactory.createValue(new Time(0));
+				}
+
+				break;
+
+			default:
+				Object _obj = null;
+				try {
+					_obj = aRs.getObject(fieldId);
+				} catch (Exception ex) {
+					logger.error("Error getting object: " + ex.getMessage());
+				}
+				if (_obj == null) {
+					value = ValueFactory.createValue("");
+				} else {
+					value = ValueFactory.createValue(_obj.toString());
+				}
+			}
+
+			if (aRs.wasNull()) {
+				return ValueFactory.createNullValue();
+			} else {
+				return value;
+			}
+		}
 
 	}
 

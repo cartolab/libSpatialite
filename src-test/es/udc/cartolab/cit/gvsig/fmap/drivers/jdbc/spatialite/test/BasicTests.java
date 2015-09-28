@@ -13,7 +13,9 @@ import java.util.Set;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.sqlite.Conn;
+//import org.sqlite.Conn;
+import org.sqlite.SQLiteConnection;
+import org.sqlite.core.CoreConnection;
 
 import com.hardcode.gdbms.driver.exceptions.ReadDriverException;
 import com.iver.cit.gvsig.fmap.drivers.ConnectionFactory;
@@ -45,7 +47,8 @@ public class BasicTests {
 
 	@After
 	public void closeConnection() throws SQLException {
-		((Conn) conn.getConnection()).realClose();
+		((CoreConnection) conn.getConnection()).realClose();
+		//((SQLiteConnection) conn.getConnection()).close();
 	}
 
 	/**

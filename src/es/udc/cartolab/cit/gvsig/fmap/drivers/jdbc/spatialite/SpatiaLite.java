@@ -6,6 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
 import java.sql.Types;
 
+import com.hardcode.gdbms.engine.values.BooleanValue;
 import com.hardcode.gdbms.engine.values.NullValue;
 import com.hardcode.gdbms.engine.values.Value;
 import com.iver.cit.gvsig.exceptions.visitors.ProcessVisitorException;
@@ -52,6 +53,21 @@ public class SpatiaLite {
 		case Types.NUMERIC:
 		case Types.REAL:
 		case Types.TINYINT:
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * @param val
+	 * @return
+	 */
+	public static boolean isBoolean(Value val) {
+
+		switch (val.getSQLType()) {
+		case Types.BOOLEAN:
+		case Types.BIT:
 			return true;
 		}
 
@@ -222,11 +238,13 @@ public class SpatiaLite {
 			String name = dbLayerDef.getFieldsDesc()[j].getFieldName();
 			if (name.equals(dbLayerDef.getFieldID()))
 				continue;
-
-			if (isNumeric(feat.getAttribute(j))) {
-				sqlBuf.append(feat.getAttribute(j) + ", ");
+			Value val = feat.getAttribute(j);
+			if (isNumeric(val)) {
+				sqlBuf.append(val + ", ");
+			} else if (val instanceof BooleanValue) {
+				sqlBuf.append((((BooleanValue) val).getValue() ? "1" : "0") + ", ");
 			} else {
-				sqlBuf.append(addQuotes(feat.getAttribute(j)) + ", ");
+				sqlBuf.append(addQuotes(val) + ", ");
 			}
 		}
 		IGeometry geometry = feat.getGeometry();
@@ -352,10 +370,13 @@ public class SpatiaLite {
 				if (val != null) {
 					if (isNumeric(val)) {
 						sqlBuf.append(" " + "\"" + name + "\"" + " = " + val
-								+ " ,");
+								+ ", ");
+					} else if (val instanceof BooleanValue) {
+						sqlBuf.append(" " + "\"" + name + "\"" + " = "
+								+ (((BooleanValue) val).getValue() ? "1" : "0") + ", ");
 					} else {
 						sqlBuf.append(" " + "\"" + name + "\"" + " = "
-								+ addQuotes(val) + " ,");
+								+ addQuotes(val) + ", ");
 					}
 				}
 			}

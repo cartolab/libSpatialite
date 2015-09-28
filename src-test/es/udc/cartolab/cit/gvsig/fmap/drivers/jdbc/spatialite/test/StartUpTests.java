@@ -5,7 +5,9 @@ import java.sql.SQLException;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.sqlite.Conn;
+//import org.sqlite.Conn;
+import org.sqlite.SQLiteConnection;
+import org.sqlite.core.CoreConnection;
 
 import com.iver.cit.gvsig.fmap.drivers.ConnectionFactory;
 import com.iver.cit.gvsig.fmap.drivers.ConnectionJDBC;
@@ -51,7 +53,8 @@ public class StartUpTests {
 				"", "");
 
 		conn.getConnection();
-		((Conn) conn.getConnection()).realClose();
+		((CoreConnection) conn.getConnection()).realClose();
+		//((SQLiteConnection) conn.getConnection()).close();
 	}
 	
 }

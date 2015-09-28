@@ -43,7 +43,7 @@ public abstract class TestUtils {
 		rowValues[1] = ValueFactory.createValue("test");
 		rowValues[2] = ValueFactory.createValue(10);
 		rowValues[3] = ValueFactory.createValue(1.5);
-		rowValues[4] = ValueFactory.createValue(1);
+		rowValues[4] = ValueFactory.createValue(true);
 		IGeometry rowGeom = ShapeFactory.createPoint2D(45000, 5000);
 		createRow = new DefaultRowEdited(new DefaultFeature(rowGeom,
 				rowValues, rowValues[0].toString()), IRowEdited.STATUS_ADDED, 0);
@@ -52,7 +52,7 @@ public abstract class TestUtils {
 		rowValues[1] = ValueFactory.createValue("texto1");
 		rowValues[2] = ValueFactory.createValue(101);
 		rowValues[3] = ValueFactory.createValue(5.5);
-		rowValues[4] = ValueFactory.createValue(0);
+		rowValues[4] = ValueFactory.createValue(false);
 		rowGeom = ShapeFactory.createPoint2D(0, 0);
 		readRow = new DefaultRowEdited(new DefaultFeature(rowGeom, rowValues,
 				rowValues[0].toString()), IRowEdited.STATUS_ORIGINAL, 0);
@@ -61,7 +61,7 @@ public abstract class TestUtils {
 		rowValues[1] = ValueFactory.createValue("texto2");
 		rowValues[2] = ValueFactory.createValue(102);
 		rowValues[3] = ValueFactory.createValue(6.5);
-		rowValues[4] = ValueFactory.createValue(1);
+		rowValues[4] = ValueFactory.createValue(true);
 		rowGeom = ShapeFactory.createPoint2D(1, 1);
 		deleteRow = new DefaultRowEdited(new DefaultFeature(rowGeom, rowValues,
 				rowValues[0].toString()), IRowEdited.STATUS_DELETED, 0);
@@ -70,7 +70,7 @@ public abstract class TestUtils {
 		rowValues[1] = ValueFactory.createValue("texto4");
 		rowValues[2] = ValueFactory.createValue(105);
 		rowValues[3] = ValueFactory.createValue(8.5);
-		rowValues[4] = ValueFactory.createValue(1);
+		rowValues[4] = ValueFactory.createValue(true);
 		rowGeom = ShapeFactory.createPoint2D(5, 5);
 		updateRow = new DefaultRowEdited(new DefaultFeature(rowGeom, rowValues,
 				rowValues[0].toString()), IRowEdited.STATUS_MODIFIED, 0);
