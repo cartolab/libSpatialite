@@ -54,7 +54,6 @@ public class StartUpTests {
 
 		conn.getConnection();
 		((CoreConnection) conn.getConnection()).realClose();
-		//((SQLiteConnection) conn.getConnection()).close();
 	}
 	
 }

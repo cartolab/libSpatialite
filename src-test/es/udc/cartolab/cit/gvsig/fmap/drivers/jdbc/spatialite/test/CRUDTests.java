@@ -14,7 +14,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.sqlite.core.CoreConnection;
-//import org.sqlite.SQLiteConnection;
 
 import com.hardcode.gdbms.driver.exceptions.InitializeWriterException;
 import com.hardcode.gdbms.driver.exceptions.ReadDriverException;
@@ -67,7 +66,6 @@ public class CRUDTests {
 		conn.getConnection().createStatement()
 				.execute(TestUtils.updateRowInsertSql);
 		((CoreConnection) conn.getConnection()).realClose();
-		//((SQLiteConnection) conn.getConnection()).close();
 	}
 
 	/**
@@ -87,7 +85,6 @@ public class CRUDTests {
 		conn.getConnection().createStatement().execute(TestUtils.deleteAllRowsSql);
 		conn.getConnection().setAutoCommit(true);
 		((CoreConnection) conn.getConnection()).realClose();
-		//((SQLiteConnection) conn.getConnection()).close();
 	}
 
 	@Before
@@ -109,7 +106,6 @@ public class CRUDTests {
 	@After
 	public void closeConnection() throws SQLException {
 		((CoreConnection) conn.getConnection()).realClose();
-		//((SQLiteConnection) conn.getConnection()).close();
 	}
 
 	private void fullProcess(IRowEdited row)

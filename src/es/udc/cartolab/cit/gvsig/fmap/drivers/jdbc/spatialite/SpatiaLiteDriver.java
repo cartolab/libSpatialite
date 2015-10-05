@@ -88,12 +88,12 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 			if (conn instanceof SQLiteConnection) {
 				try {
 					((CoreConnection) conn).realClose();
-					//((SQLiteConnection) conn).close();
 				} catch (SQLException e) {
 					e.printStackTrace();
 				}
 			}
 		}
+		conns.clear();
 	}
 
 	public SpatiaLiteDriver(boolean checkDependencies, String libsPath) {
@@ -329,6 +329,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 	public void setData(IConnection conn, DBLayerDefinition lyrDef)
 			throws DBException {
 		this.conn = conn;
+		boolean loadSpatialite = !conns.containsValue(((ConnectionJDBC) conn).getConnection());
 		conns.put(conn.getURL()
 				.replaceFirst(getConnectionStringBeginning(), ""),
 				((ConnectionJDBC) conn).getConnection());
@@ -349,56 +350,53 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 			}
 			sqlOrig = "SELECT " + getTotalFields() + " FROM "
 			+ getLyrDef().getComposedTableName() + " ";
-			// + getLyrDef().getWhereClause();
 			if (canReproject(strEPSG)) {
 				completeWhere = getCompoundWhere(sqlOrig, workingArea, strEPSG);
 			} else {
 				completeWhere = getCompoundWhere(sqlOrig, workingArea,
 						originalEPSG);
 			}
-			// completeWhere = getLyrDef().getWhereClause() + completeWhere;
 
 			String sqlAux = sqlOrig + completeWhere + " ORDER BY "
 					+ getLyrDef().getFieldID();
 
 			sqlTotal = sqlAux;
 			Statement st = ((ConnectionJDBC) conn).getConnection().createStatement();
-			String osName = OSInfo.getOSName();
-			File spatialiteLib;
-			String path;
-			if (osName.equals("Linux")) {
-				spatialiteLib = new File(libsPath + "mod_spatialite.so.7.1.0");
-				path = spatialiteLib.getAbsolutePath();
-				//path = path.substring(0, path.length() - 3);
-			} else if (osName.equals("Windows")) {
-				spatialiteLib = new File(libsPath + "mod_spatialite.dll");
-				path = spatialiteLib.getAbsolutePath();
+			if (loadSpatialite) {
+				String osName = OSInfo.getOSName();
+				File spatialiteLib;
+				String path;
+				if (osName.equals("Linux")) {
+					spatialiteLib = new File(libsPath + "mod_spatialite.so.7.1.0");
+					path = spatialiteLib.getAbsolutePath();
+					//path = path.substring(0, path.length() - 3);
+				} else if (osName.equals("Windows")) {
+					spatialiteLib = new File(libsPath + "mod_spatialite.dll");
+					path = spatialiteLib.getAbsolutePath();
 
-				/** FIX FOR SQLITE BUG
-				 * 
-				 *  Recent versions of SQLite appear to have a bug
-				 *  where they don't accept the Windows path separator (\)
-				 *  as the last separator of an extension path. Previous separators
-				 *  can be either / or \, mixed in any way. 
-				 */
-				path = path.replace("\\mod_spatialite.dll", "/mod_spatialite.dll");
-				//path = path.substring(0, path.length() - 4);
-			} else {
-				throw new DBException(new SQLException(
-						"We provide no support for SpatiaLite for the OS '"
-								+ osName + "'"));
+					/** FIX FOR SQLITE BUG
+					 *
+					 *  Recent versions of SQLite appear to have a bug
+					 *  where they don't accept the Windows path separator (\)
+					 *  as the last separator of an extension path. Previous separators
+					 *  can be either / or \, mixed in any way.
+					 */
+					path = path.replace("\\mod_spatialite.dll", "/mod_spatialite.dll");
+					//path = path.substring(0, path.length() - 4);
+				} else {
+					throw new DBException(new SQLException(
+							"We provide no support for SpatiaLite for the OS '"
+									+ osName + "'"));
+				}
+				if (!spatialiteLib.canRead()) {
+					throw new DBException(new SQLException(
+							"Can't read the SpatiaLite library in '"
+									+ spatialiteLib.getAbsolutePath() + "'"));
+				}
+				String query = "SELECT load_extension('" + path + "');";
+				logger.info(query);
+				st.execute(query);
 			}
-			if (!spatialiteLib.canRead()) {
-				throw new DBException(new SQLException(
-						"Can't read the SpatiaLite library in '"
-								+ spatialiteLib.getAbsolutePath() + "'"));
-			}
-			String query = "SELECT load_extension('" + path + "');";
-			logger.info(query);
-			//rs = st.executeQuery("SELECT sqlite_version();");
-			//rs.next();
-			//logger.info(rs.getString(1));
-			st.execute(query);
 			rs = st.executeQuery(sqlAux + " LIMIT " + FETCH_SIZE);
 			fetch_min = 0;
 			fetch_max = FETCH_SIZE - 1;

@@ -48,7 +48,6 @@ public class BasicTests {
 	@After
 	public void closeConnection() throws SQLException {
 		((CoreConnection) conn.getConnection()).realClose();
-		//((SQLiteConnection) conn.getConnection()).close();
 	}
 
 	/**
