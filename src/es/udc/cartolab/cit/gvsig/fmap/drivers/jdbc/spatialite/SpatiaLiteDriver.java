@@ -143,14 +143,14 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 				logger.info("Loaded the Geos_c library from: " + path);
 			}
 			if (osName.equals("Windows")) {
-				path = new File(libsPath + "libproj-9.dll").getAbsolutePath();
-				System.load(path);
-				logger.info("Loaded the Proj library from: " + path);
-
 				path = new File(libsPath + "libgcc_s_dw2-1.dll")
 						.getAbsolutePath();
 				System.load(path);
 				logger.info("Loaded the GCC_s library from: " + path);
+
+				path = new File(libsPath + "libproj-9.dll").getAbsolutePath();
+				System.load(path);
+				logger.info("Loaded the Proj library from: " + path);
 
 				path = new File(libsPath + "libiconv-2.dll").getAbsolutePath();
 				System.load(path);
