@@ -85,10 +85,13 @@ public class SpatiaLiteFeatureIterator implements IFeatureIterator {
 
 		st = conn.createStatement();
 
-		try{
+		try {
 			st.execute("BEGIN");  
 		} catch(SQLException e) {
-			st.execute("END");
+			try {
+				st.execute("END");
+			} catch (SQLException e1) {
+			}
 			st.execute("BEGIN");
 		}
 
