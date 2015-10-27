@@ -239,7 +239,9 @@ public class SpatiaLite {
 			if (name.equals(dbLayerDef.getFieldID()))
 				continue;
 			Value val = feat.getAttribute(j);
-			if (isNumeric(val)) {
+			if (val instanceof NullValue) {
+				sqlBuf.append("null, ");
+			} else if (isNumeric(val)) {
 				sqlBuf.append(val + ", ");
 			} else if (val instanceof BooleanValue) {
 				sqlBuf.append((((BooleanValue) val).getValue() ? "1" : "0") + ", ");
