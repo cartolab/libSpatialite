@@ -13,7 +13,7 @@ import com.iver.cit.gvsig.fmap.edition.IRowEdited;
 
 public abstract class TestUtils {
 
-	public static String libPath = "lib/";
+	public static String libPath = "native/lin32/";
 	public static String testDataPath = "test-data" + File.separator
 			+ "test.sqlite";
 	public static String[] baseTables = { "SpatialIndex", "geom_cols_ref_sys",
