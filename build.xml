@@ -47,6 +47,10 @@
 	<copy todir="${dist}/lib" overwrite="true">
   	    	<fileset dir="lib" includes="*"/>
   	</copy>
+  	
+  	<copy todir="${dist}/lib" overwrite="true">
+  		<fileset dir="native/win32" includes="*"/>
+  	</copy>
 
   	<jar jarfile="${dist}/${spatialitejar}.jar" basedir="${build}"
   		includes="es/udc/cartolab/cit/gvsig/fmap/drivers/jdbc/spatialite/**"
@@ -70,8 +74,8 @@
   		<fileset dir="${dist}" includes="${spatialitejar}.jar"/>
   		<fileset dir="${dist}" includes="${sqlitejar}.jar"/>
   		<fileset dir="${lib}" includes="${sqlitelibjar}.jar"/>
-  	    <fileset dir="${lib}" includes="*.dll"/>
-  	    <fileset dir="${lib}" includes="*.so.*"/>
+  	    <fileset dir="native/win32" includes="*"/>
+  	    <fileset dir="native/lin32" includes="*"/>
     </copy>
   </target>
 
