@@ -122,7 +122,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 			// dependencies needed by it and SpatiaLite
 			String osName = OSInfo.getOSName(), path;
 			if (osName.equals("Linux")) {
-				path = new File(libsPath + "libproj.so.0.7.0")
+				path = new File(libsPath + "libproj.so.9.1.0")
 						.getAbsolutePath();
 				System.load(path);
 				logger.info("Loaded the Proj library from: " + path);
@@ -132,12 +132,17 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 				System.load(path);
 				logger.info("Loaded the Freexl library from: " + path);
 
-				path = new File(libsPath + "libgeos.so.3.4.2")
+				path = new File(libsPath + "libstdc++.so.6.0.21")
+					.getAbsolutePath();
+				System.load(path);
+				logger.info("Loaded the Geos library from: " + path);
+		
+				path = new File(libsPath + "libgeos-3.5.0.so")
 						.getAbsolutePath();
 				System.load(path);
 				logger.info("Loaded the Geos library from: " + path);
 
-				path = new File(libsPath + "libgeos_c.so.1.8.2")
+				path = new File(libsPath + "libgeos_c.so.1.9.0")
 						.getAbsolutePath();
 				System.load(path);
 				logger.info("Loaded the Geos_c library from: " + path);
