@@ -1,7 +1,6 @@
 package es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite;
 
 import java.io.File;
-import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -11,7 +10,6 @@ import org.apache.log4j.Logger;
 
 import com.hardcode.gdbms.driver.exceptions.InitializeWriterException;
 import com.hardcode.gdbms.driver.exceptions.WriteDriverException;
-import com.hardcode.gdbms.engine.data.driver.DriverException;
 import com.iver.cit.gvsig.exceptions.visitors.ProcessVisitorException;
 import com.iver.cit.gvsig.exceptions.visitors.ProcessWriterVisitorException;
 import com.iver.cit.gvsig.exceptions.visitors.StartWriterVisitorException;
@@ -32,6 +30,8 @@ import com.iver.cit.gvsig.fmap.edition.writers.AbstractWriter;
 public class SpatiaLiteWriter extends AbstractWriter implements ISpatialWriter,
 IFieldManager {
 
+    private static final Logger logger = Logger
+	    .getLogger(SpatiaLiteWriter.class);
     private DBLayerDefinition lyrDef;
     private IConnection conex;
     private Statement st;
@@ -39,16 +39,7 @@ IFieldManager {
     private boolean bWriteAll;
     private SpatiaLite spatiaLite = new SpatiaLite();
     private JdbcFieldManager fieldManager;
-    private static Logger logger = Logger.getLogger("LibSpatiaLite");
 
-    /**
-     * Useful to create a layer from scratch
-     *
-     * @param lyrDef
-     * @throws InitializeWriterException
-     * @throws IOException
-     * @throws DriverException
-     */
     @Override
     public void initialize(ITableDefinition lyrD)
 	    throws InitializeWriterException {
@@ -182,17 +173,10 @@ IFieldManager {
 	return true;
     }
 
-    /**
-     * @return Returns the bCreateTable.
-     */
     public boolean isCreateTable() {
 	return bCreateTable;
     }
 
-    /**
-     * @param createTable
-     *            The bCreateTable to set.
-     */
     public void setCreateTable(boolean createTable) {
 	bCreateTable = createTable;
     }

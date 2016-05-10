@@ -194,11 +194,6 @@ ICanReproject, IWriteable {
 	}
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.iver.cit.gvsig.fmap.drivers.VectorialDriver#reLoad()
-     */
     @Override
     public void reload() throws ReloadDriverException {
 	try {
@@ -222,14 +217,6 @@ ICanReproject, IWriteable {
     public void open() {
     }
 
-    /**
-     * Close a ResultSet
-     *
-     * @param rs
-     *            , the resultset to be closed
-     * @return true if the resulset was correctly closed. false in any other
-     *         case
-     */
     public boolean closeResultSet(ResultSet rs) {
 	boolean error = false;
 
@@ -245,14 +232,6 @@ ICanReproject, IWriteable {
 	return error;
     }
 
-    /**
-     * Close a Statement
-     *
-     * @param st
-     *            , the statement to be closed
-     * @return true if the statement was correctly closed, false in any other
-     *         case
-     */
     public boolean closeStatement(Statement st) {
 	boolean error = false;
 
@@ -268,14 +247,6 @@ ICanReproject, IWriteable {
 	return error;
     }
 
-    /**
-     * Close a Connection
-     *
-     * @param conn
-     *            , the connection to be closed
-     * @return true if the connection was correctly closed, false in any other
-     *         case
-     */
     public boolean closeConnection(IConnection conn) {
 	boolean error = false;
 
@@ -594,8 +565,6 @@ ICanReproject, IWriteable {
 		String aux = r.getString(1);
 		Value val = ValueFactory.createValue(aux);
 		hashRelate.put(val, new Integer(index));
-		// logger.info("ASOCIANDO CLAVE " + aux + " CON VALOR "
-		// + index);
 		index++;
 	    }
 	    numReg = index;
@@ -646,8 +615,6 @@ ICanReproject, IWriteable {
 	DBLayerDefinition lyrDef = getLyrDef();
 	DBLayerDefinition clonedLyrDef = cloneLyrDef(lyrDef);
 	ArrayList<FieldDescription> myFieldsDesc = new ArrayList<FieldDescription>(); // =
-	// new
-	// FieldDescription[alphaNumericFieldsNeeded.length+1];
 	try {
 	    if (workingArea != null) {
 		r = r.createIntersection(workingArea);
@@ -670,7 +637,7 @@ ICanReproject, IWriteable {
 		    strAux = strAux
 			    + ", "
 			    + SpatiaLite
-			    .escapeFieldName(lyrDef.getFieldNames()[fieldIndex]);
+				    .escapeFieldName(lyrDef.getFieldNames()[fieldIndex]);
 		    if (alphaNumericFieldsNeeded[i].equalsIgnoreCase(lyrDef
 			    .getFieldID())) {
 			found = true;
@@ -684,7 +651,7 @@ ICanReproject, IWriteable {
 	    if (found == false) {
 		strAux = strAux + ", " + lyrDef.getFieldID();
 		myFieldsDesc.add(lyrDef.getFieldsDesc()[lyrDef
-		                                        .getIdField(lyrDef.getFieldID())]);
+			.getIdField(lyrDef.getFieldID())]);
 		clonedLyrDef.setIdFieldID(myFieldsDesc.size() - 1);
 	    }
 	    clonedLyrDef.setFieldsDesc(myFieldsDesc
@@ -839,9 +806,6 @@ ICanReproject, IWriteable {
 	}
     }
 
-    /**
-     * @see com.iver.cit.gvsig.fmap.layers.ReadableVectorial#getFullExtent()
-     */
     @Override
     public Rectangle2D getFullExtent() throws ReadDriverException {
 	if (fullExtent == null) {
@@ -1052,8 +1016,6 @@ ICanReproject, IWriteable {
 
     @Override
     public void write(DataWare dataWare) {
-	// TODO Auto-generated method stub
-
     }
 
     @Override

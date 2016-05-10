@@ -146,11 +146,11 @@ public class SpatiaLiteFeatureIterator implements IFeatureIterator {
 		if ((auxVal instanceof DoubleValue)
 			&& (auxVal.toString().length() > 0)) {
 		    theID = new Integer(((DoubleValue) auxVal).intValue())
-		    .toString();
+			    .toString();
 		} else if ((auxVal instanceof FloatValue)
 			&& (auxVal.toString().length() > 0)) {
 		    theID = new Integer(((FloatValue) auxVal).intValue())
-		    .toString();
+			    .toString();
 		} else {
 		    theID = auxVal.toString();
 		}

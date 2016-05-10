@@ -13,37 +13,26 @@ import org.apache.log4j.Logger;
 
 import com.hardcode.gdbms.driver.exceptions.BadFieldDriverException;
 import com.hardcode.gdbms.driver.exceptions.ReadDriverException;
-import com.hardcode.gdbms.engine.data.db.JDBCSupport;
 import com.hardcode.gdbms.engine.data.driver.ReadAccess;
 import com.hardcode.gdbms.engine.values.Value;
 import com.hardcode.gdbms.engine.values.ValueFactory;
 
 public class SQLiteJDBCSupport implements ReadAccess {
 
-    private static Logger logger = Logger
-	    .getLogger(JDBCSupport.class.getName());
+    private static final Logger logger = Logger
+	    .getLogger(SQLiteJDBCSupport.class);
 
     private ResultSet resultSet;
     private int rowCount = -1;
     private Connection conn = null;
     private String sql = null;
 
-    /**
-     * Creates a new JDBCSupport object.
-     *
-     * @param r
-     *            ResultSet that will be used to return the methods values
-     */
     protected SQLiteJDBCSupport(ResultSet r, Connection con, String sql) {
 	this.conn = con;
 	this.sql = sql;
 	resultSet = r;
     }
 
-    /**
-     * @see com.hardcode.gdbms.engine.data.driver.ReadAccess#getFieldValue(long,
-     *      int)
-     */
     @Override
     public Value getFieldValue(long rowIndex, int fieldId)
 	    throws ReadDriverException {
@@ -176,9 +165,6 @@ public class SQLiteJDBCSupport implements ReadAccess {
 	}
     }
 
-    /**
-     * @see com.hardcode.gdbms.engine.data.driver.ReadAccess#getFieldCount()
-     */
     @Override
     public int getFieldCount() throws ReadDriverException {
 	try {
@@ -193,9 +179,6 @@ public class SQLiteJDBCSupport implements ReadAccess {
 	}
     }
 
-    /**
-     * @see com.hardcode.gdbms.engine.data.driver.ReadAccess#getFieldName(int)
-     */
     @Override
     public String getFieldName(int fieldId) throws ReadDriverException {
 	try {
@@ -210,9 +193,6 @@ public class SQLiteJDBCSupport implements ReadAccess {
 	}
     }
 
-    /**
-     * @see com.hardcode.gdbms.engine.data.driver.ReadAccess#getRowCount()
-     */
     @Override
     public long getRowCount() throws ReadDriverException {
 	try {
@@ -238,9 +218,6 @@ public class SQLiteJDBCSupport implements ReadAccess {
 	}
     }
 
-    /**
-     * @see com.hardcode.gdbms.engine.data.driver.ReadAccess#getFieldType(int)
-     */
     @Override
     public int getFieldType(int i) throws ReadDriverException {
 	try {
@@ -255,30 +232,10 @@ public class SQLiteJDBCSupport implements ReadAccess {
 	}
     }
 
-    /**
-     * Closes the internal data source
-     *
-     * @throws SQLException
-     *             if the operation fails
-     */
     public void close() throws SQLException {
 	resultSet.close();
     }
 
-    /**
-     * Creates a new JDBCSuuport object with the data retrieved from the
-     * connection with the given sql
-     *
-     * @param con
-     *            Connection to the database
-     * @param sql
-     *            SQL defining the data to use
-     *
-     * @return JDBCSupport
-     *
-     * @throws SQLException
-     *             If the data cannot be retrieved
-     */
     public static SQLiteJDBCSupport newJDBCSupport(Connection con, String sql)
 	    throws SQLException {
 	Statement st = con.createStatement(ResultSet.TYPE_FORWARD_ONLY,
@@ -288,26 +245,12 @@ public class SQLiteJDBCSupport implements ReadAccess {
 	return new SQLiteJDBCSupport(res, con, sql);
     }
 
-    /**
-     * Executes a query with the 'con' connection
-     *
-     * @param con
-     *            connection
-     * @param sql
-     *            instruction to execute
-     *
-     * @throws SQLException
-     *             if execution fails
-     */
     public static void execute(Connection con, String sql) throws SQLException {
 	Statement st = con.createStatement(ResultSet.TYPE_FORWARD_ONLY,
 		ResultSet.CONCUR_READ_ONLY);
 	st.execute(sql);
     }
 
-    /**
-     * @return
-     */
     public ResultSet getResultSet() {
 	return resultSet;
     }

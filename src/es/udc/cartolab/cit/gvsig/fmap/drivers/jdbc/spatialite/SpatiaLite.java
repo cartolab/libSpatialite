@@ -3,8 +3,9 @@ package es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
-import java.sql.SQLException;
 import java.sql.Types;
+
+import org.apache.log4j.Logger;
 
 import com.hardcode.gdbms.engine.values.BooleanValue;
 import com.hardcode.gdbms.engine.values.NullValue;
@@ -36,12 +37,10 @@ import com.vividsolutions.jts.geom.Geometry;
  */
 public class SpatiaLite {
 
+    private static final Logger logger = Logger.getLogger(SpatiaLite.class);
+
     private String toEncode;
 
-    /**
-     * @param val
-     * @return
-     */
     public static boolean isNumeric(Value val) {
 
 	switch (val.getSQLType()) {
@@ -59,10 +58,6 @@ public class SpatiaLite {
 	return false;
     }
 
-    /**
-     * @param val
-     * @return
-     */
     public static boolean isBoolean(Value val) {
 
 	switch (val.getSQLType()) {
@@ -74,10 +69,6 @@ public class SpatiaLite {
 	return false;
     }
 
-    /**
-     * @param val
-     * @return
-     */
     public static boolean isGeometryType(String val) {
 
 	if (val.compareToIgnoreCase("POINT") == 0) {
@@ -103,13 +94,6 @@ public class SpatiaLite {
 	return "jdbc:sqlite:";
     }
 
-    /**
-     * @param dbLayerDef
-     * @param fieldsDescr
-     * @param bCreateGID
-     * @DEPRECATED
-     * @return
-     */
     public String getSqlCreateSpatialTable(DBLayerDefinition dbLayerDef,
 	    boolean bCreateGID) {
 
@@ -117,7 +101,6 @@ public class SpatiaLite {
 	String resul;
 	resul = "CREATE TABLE " + dbLayerDef.getTableName() + " ( " + "\""
 		+ dbLayerDef.getFieldID() + "\"" + " serial PRIMARY KEY ";
-	int j = 0;
 	for (int i = 0; i < dbLayerDef.getFieldNames().length; i++) {
 	    int fieldType = fieldsDescr[i].getFieldType();
 	    String strType = XTypes.fieldTypeToString(fieldType);
@@ -127,7 +110,6 @@ public class SpatiaLite {
 	    }
 	    resul = resul + ", " + "\"" + dbLayerDef.getFieldNames()[i] + "\""
 		    + " " + strType;
-	    j++;
 	}
 	resul = resul + ");";
 	return resul;
@@ -166,14 +148,6 @@ public class SpatiaLite {
 	return result;
     }
 
-    /**
-     * From geotools Adds quotes to an object for storage in spatialite.
-     *
-     * @param value
-     *            The object to add quotes to.
-     *
-     * @return a string representation of the object with quotes.
-     */
     protected String addQuotes(Object value) {
 	String retString;
 
@@ -191,10 +165,6 @@ public class SpatiaLite {
 	return retString;
     }
 
-    /**
-     * @param obj
-     * @return
-     */
     private String doubleQuote(Object obj) {
 	String aux = obj.toString().replaceAll("'", "''");
 	StringBuffer strBuf = new StringBuffer(aux);
@@ -205,22 +175,13 @@ public class SpatiaLite {
 	    PrintStream printStream = new PrintStream(out, true, toEncode);
 	    printStream.print(aux);
 	    aux2 = out.toString(toEncode);
-	    // System.out.println(aux + " " + aux2);
 	} catch (UnsupportedEncodingException e) {
-	    // TODO Auto-generated catch block
-	    e.printStackTrace();
+	    logger.error(e.getStackTrace(), e);
 	}
 
 	return aux2;
     }
 
-    /**
-     * @param dbLayerDef
-     * @param feat
-     * @return
-     * @throws SQLException
-     * @throws ProcessVisitorException
-     */
     public String getSqlInsertFeature(DBLayerDefinition dbLayerDef,
 	    IFeature feat) throws ProcessVisitorException {
 	StringBuffer sqlBuf = new StringBuffer("INSERT INTO "
@@ -289,32 +250,32 @@ public class SpatiaLite {
 		    + ";" + ((FShapeM) geometry.getInternalShape()).toText()
 		    + "')");
 	} else
-	    // ZCoord
-	    if ((type & FShape.Z) != 0) {
-		if ((type & FShape.MULTIPOINT) != 0) {
-		    // TODO: Metodo toText 3D o 2DM
-		} else {
-		    // Its not a multipoint
-		    sqlBuf.append(" geomfromewkt( 'SRID="
-			    + DefaultJDBCDriver.removePrefix(dbLayerDef
-				    .getSRID_EPSG())
-				    + ";"
-				    + ((FShape3D) feat.getGeometry().getInternalShape())
-				    .toText() + "')");
-		}
-
-	    }
-	// XYCoord
-	    else {
-		Geometry jtsGeom = geometry.toJTSGeometry();
-		if (jtsGeom == null || !isCorrectType(jtsGeom, type)) {
-		    throw new ProcessVisitorException("incorrect_geometry",
-			    new Exception());
-		}
+	// ZCoord
+	if ((type & FShape.Z) != 0) {
+	    if ((type & FShape.MULTIPOINT) != 0) {
+		// TODO: Metodo toText 3D o 2DM
+	    } else {
+		// Its not a multipoint
 		sqlBuf.append(" geomfromewkt( 'SRID="
-			+ DefaultJDBCDriver.removePrefix(dbLayerDef.getSRID_EPSG())
-			+ ";" + jtsGeom.toText() + "')");
+			+ DefaultJDBCDriver.removePrefix(dbLayerDef
+				.getSRID_EPSG())
+			+ ";"
+			+ ((FShape3D) feat.getGeometry().getInternalShape())
+				.toText() + "')");
 	    }
+
+	}
+	// XYCoord
+	else {
+	    Geometry jtsGeom = geometry.toJTSGeometry();
+	    if (jtsGeom == null || !isCorrectType(jtsGeom, type)) {
+		throw new ProcessVisitorException("incorrect_geometry",
+			new Exception());
+	    }
+	    sqlBuf.append(" geomfromewkt( 'SRID="
+		    + DefaultJDBCDriver.removePrefix(dbLayerDef.getSRID_EPSG())
+		    + ";" + jtsGeom.toText() + "')");
+	}
 	sqlBuf.append(" );");
 	sql = sqlBuf.toString();
 	return sql;
@@ -411,8 +372,8 @@ public class SpatiaLite {
 		sqlBuf.append(" geomfromewkt( 'SRID="
 			+ DefaultJDBCDriver.removePrefix(dbLayerDef
 				.getSRID_EPSG())
-				+ ";"
-				+ ((FShapeM) feat.getGeometry().getInternalShape())
+			+ ";"
+			+ ((FShapeM) feat.getGeometry().getInternalShape())
 				.toText() + "')");
 	    } else {
 		// ZCoord
@@ -424,9 +385,9 @@ public class SpatiaLite {
 			sqlBuf.append(" geomfromewkt( 'SRID="
 				+ DefaultJDBCDriver.removePrefix(dbLayerDef
 					.getSRID_EPSG())
-					+ ";"
-					+ ((FShape3D) feat.getGeometry()
-						.getInternalShape()).toText() + "')");
+				+ ";"
+				+ ((FShape3D) feat.getGeometry()
+					.getInternalShape()).toText() + "')");
 		    }
 
 		}
@@ -436,8 +397,8 @@ public class SpatiaLite {
 		    sqlBuf.append(" geomfromewkt( 'SRID="
 			    + DefaultJDBCDriver.removePrefix(dbLayerDef
 				    .getSRID_EPSG()) + ";"
-				    + feat.getGeometry().toJTSGeometry().toText()
-				    + "')");
+			    + feat.getGeometry().toJTSGeometry().toText()
+			    + "')");
 		}
 	    }
 	}
@@ -448,13 +409,7 @@ public class SpatiaLite {
 
     }
 
-    /**
-     * @param dbLayerDef
-     * @param feat
-     * @return
-     */
     public String getSqlDeleteFeature(DBLayerDefinition dbLayerDef, IRow row) {
-	// DELETE FROM weather WHERE city = 'Hayward';
 	// TODO: NECESITAMOS OTRO MÉTODO PARA BORRAR CORRECTAMENTE.
 	// Esto provocará errores, ya que getID que viene en un row no
 	// nos sirve dentro de un writer para modificar y/o borrar entidades
@@ -496,7 +451,6 @@ public class SpatiaLite {
 	if (name.indexOf(":") > 0) {
 	    return "\"" + name.trim() + "\"";
 	}
-	// si es una palabra reservada lo escapamos
 	if (SQLiteReservedWords.isReserved(name)) {
 	    return "\"" + name.trim() + "\"";
 	}
