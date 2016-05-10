@@ -615,65 +615,61 @@ ICanReproject, IWriteable {
 	DBLayerDefinition lyrDef = getLyrDef();
 	DBLayerDefinition clonedLyrDef = cloneLyrDef(lyrDef);
 	ArrayList<FieldDescription> myFieldsDesc = new ArrayList<FieldDescription>(); // =
-	try {
-	    if (workingArea != null) {
-		r = r.createIntersection(workingArea);
-	    }
-	    String strAux = getGeometryField(lyrDef.getFieldGeometry());
-
-	    boolean found = false;
-	    int fieldIndex = -1;
-	    if (alphaNumericFieldsNeeded != null) {
-		FieldDescription[] fieldsDesc = lyrDef.getFieldsDesc();
-
-		for (int i = 0; i < alphaNumericFieldsNeeded.length; i++) {
-		    fieldIndex = lyrDef
-			    .getFieldIdByName(alphaNumericFieldsNeeded[i]);
-		    if (fieldIndex < 0) {
-			throw new RuntimeException(
-				"No se ha encontrado el nombre de campo "
-					+ metaData.getColumnName(i));
-		    }
-		    strAux = strAux
-			    + ", "
-			    + SpatiaLite
-				    .escapeFieldName(lyrDef.getFieldNames()[fieldIndex]);
-		    if (alphaNumericFieldsNeeded[i].equalsIgnoreCase(lyrDef
-			    .getFieldID())) {
-			found = true;
-			clonedLyrDef.setIdFieldID(i);
-		    }
-
-		    myFieldsDesc.add(fieldsDesc[fieldIndex]);
-		}
-	    }
-	    // Nos aseguramos de pedir siempre el campo ID
-	    if (found == false) {
-		strAux = strAux + ", " + lyrDef.getFieldID();
-		myFieldsDesc.add(lyrDef.getFieldsDesc()[lyrDef
-			.getIdField(lyrDef.getFieldID())]);
-		clonedLyrDef.setIdFieldID(myFieldsDesc.size() - 1);
-	    }
-	    clonedLyrDef.setFieldsDesc(myFieldsDesc
-		    .toArray(new FieldDescription[] {}));
-
-	    String sqlProv = "SELECT " + strAux + " FROM "
-		    + lyrDef.getComposedTableName() + " ";
-
-	    if (canReproject(strEPSG)) {
-		sqlAux = sqlProv + getCompoundWhere(sqlProv, r, strEPSG);
-	    } else {
-		sqlAux = sqlProv + getCompoundWhere(sqlProv, r, originalEPSG);
-	    }
-
-	    System.out.println("SqlAux getFeatureIterator = " + sqlAux);
-	    SpatiaLiteFeatureIterator geomIterator = null;
-	    geomIterator = myGetFeatureIterator(sqlAux);
-	    geomIterator.setLyrDef(clonedLyrDef);
-	    return geomIterator;
-	} catch (Exception e) {
-	    throw new ReadDriverException("SpatiaLite Driver", e);
+	if (workingArea != null) {
+	    r = r.createIntersection(workingArea);
 	}
+	String strAux = getGeometryField(lyrDef.getFieldGeometry());
+
+	boolean found = false;
+	int fieldIndex = -1;
+	if (alphaNumericFieldsNeeded != null) {
+	    FieldDescription[] fieldsDesc = lyrDef.getFieldsDesc();
+
+	    for (int i = 0; i < alphaNumericFieldsNeeded.length; i++) {
+		fieldIndex = lyrDef
+			.getFieldIdByName(alphaNumericFieldsNeeded[i]);
+		if (fieldIndex < 0) {
+		    throw new RuntimeException(
+			    "No se ha encontrado el nombre de campo "
+				    + alphaNumericFieldsNeeded[i]);
+		}
+		strAux = strAux
+			+ ", "
+			+ SpatiaLite
+				.escapeFieldName(lyrDef.getFieldNames()[fieldIndex]);
+		if (alphaNumericFieldsNeeded[i].equalsIgnoreCase(lyrDef
+			.getFieldID())) {
+		    found = true;
+		    clonedLyrDef.setIdFieldID(i);
+		}
+
+		myFieldsDesc.add(fieldsDesc[fieldIndex]);
+	    }
+	}
+	// Nos aseguramos de pedir siempre el campo ID
+	if (found == false) {
+	    strAux = strAux + ", " + lyrDef.getFieldID();
+	    myFieldsDesc.add(lyrDef.getFieldsDesc()[lyrDef.getIdField(lyrDef
+		    .getFieldID())]);
+	    clonedLyrDef.setIdFieldID(myFieldsDesc.size() - 1);
+	}
+	clonedLyrDef.setFieldsDesc(myFieldsDesc
+		.toArray(new FieldDescription[] {}));
+
+	String sqlProv = "SELECT " + strAux + " FROM "
+		+ lyrDef.getComposedTableName() + " ";
+
+	if (canReproject(strEPSG)) {
+	    sqlAux = sqlProv + getCompoundWhere(sqlProv, r, strEPSG);
+	} else {
+	    sqlAux = sqlProv + getCompoundWhere(sqlProv, r, originalEPSG);
+	}
+
+	System.out.println("SqlAux getFeatureIterator = " + sqlAux);
+	SpatiaLiteFeatureIterator geomIterator = null;
+	geomIterator = myGetFeatureIterator(sqlAux);
+	geomIterator.setLyrDef(clonedLyrDef);
+	return geomIterator;
     }
 
     private SpatiaLiteFeatureIterator myGetFeatureIterator(String sql)
