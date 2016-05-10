@@ -15,88 +15,88 @@ import es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite.SpatiaLiteDriver;
 
 public class SQLiteDriver extends AbstractJDBCDriver {
 
-	public final static String NAME = "SQLite Alphanumeric";
-	protected SQLiteJDBCSupport sqliteJdbcSupport;
+    public final static String NAME = "SQLite Alphanumeric";
+    protected SQLiteJDBCSupport sqliteJdbcSupport;
 
-	static {
-		try {
-			Class.forName("org.sqlite.JDBC");
-		} catch (ClassNotFoundException e) {
-			throw new RuntimeException(e);
-		}
+    static {
+	try {
+	    Class.forName("org.sqlite.JDBC");
+	} catch (ClassNotFoundException e) {
+	    throw new RuntimeException(e);
 	}
+    }
 
-	@Override
-	public void open(Connection con, String sql) throws SQLException,
-			OpenDriverException {
-		sqliteJdbcSupport = SQLiteJDBCSupport.newJDBCSupport(con, sql);
-		Statement st = con.createStatement(ResultSet.TYPE_FORWARD_ONLY,
-				ResultSet.CONCUR_READ_ONLY);
-		ResultSet res = st.executeQuery(sql);
-		jdbcWriter.initialize(con, res);
-		jdbcWriter.setCreateTable(false);
-		jdbcWriter.setWriteAll(false);
+    @Override
+    public void open(Connection con, String sql) throws SQLException,
+    OpenDriverException {
+	sqliteJdbcSupport = SQLiteJDBCSupport.newJDBCSupport(con, sql);
+	Statement st = con.createStatement(ResultSet.TYPE_FORWARD_ONLY,
+		ResultSet.CONCUR_READ_ONLY);
+	ResultSet res = st.executeQuery(sql);
+	jdbcWriter.initialize(con, res);
+	jdbcWriter.setCreateTable(false);
+	jdbcWriter.setWriteAll(false);
+    }
+
+    @Override
+    public Connection getConnection(String host, int port, String dbName,
+	    String user, String password) throws SQLException {
+	Connection aux = SpatiaLiteDriver.getConnection(host);
+	if (aux != null) {
+	    return aux;
 	}
+	String connString = "jdbc:sqlite:" + host;
 
-	@Override
-	public Connection getConnection(String host, int port, String dbName,
-			String user, String password) throws SQLException {
-		Connection aux = SpatiaLiteDriver.getConnection(host);
-		if (aux != null) {
-			return aux;
-		}
-		String connString = "jdbc:sqlite:" + host;
+	Connection conn = DriverManager.getConnection(connString);
+	SpatiaLiteDriver.updateConnection(host, conn);
+	return conn;
+    }
 
-		Connection conn = DriverManager.getConnection(connString);
-		SpatiaLiteDriver.updateConnection(host, conn);
-		return conn;
-	}
+    @Override
+    public String getDefaultPort() {
+	return null;
+    }
 
-	@Override
-	public String getDefaultPort() {
-		return null;
-	}
+    @Override
+    public String getName() {
+	return NAME;
+    }
 
-	@Override
-	public String getName() {
-		return NAME;
-	}
+    @Override
+    public int getFieldCount() throws ReadDriverException {
+	return sqliteJdbcSupport.getFieldCount();
+    }
 
-	@Override
-	public int getFieldCount() throws ReadDriverException {
-		return sqliteJdbcSupport.getFieldCount();
-	}
+    @Override
+    public String getFieldName(int fieldId) throws ReadDriverException {
+	return sqliteJdbcSupport.getFieldName(fieldId);
+    }
 
-	@Override
-	public String getFieldName(int fieldId) throws ReadDriverException {
-		return sqliteJdbcSupport.getFieldName(fieldId);
-	}
+    @Override
+    public int getFieldType(int i) throws ReadDriverException {
+	return sqliteJdbcSupport.getFieldType(i);
+    }
 
-	@Override
-	public int getFieldType(int i) throws ReadDriverException {
-		return sqliteJdbcSupport.getFieldType(i);
-	}
+    @Override
+    public Value getFieldValue(long rowIndex, int fieldId)
+	    throws ReadDriverException {
+	return sqliteJdbcSupport.getFieldValue(rowIndex, fieldId);
+    }
 
-	@Override
-	public Value getFieldValue(long rowIndex, int fieldId)
-			throws ReadDriverException {
-		return sqliteJdbcSupport.getFieldValue(rowIndex, fieldId);
-	}
+    @Override
+    public long getRowCount() throws ReadDriverException {
+	return sqliteJdbcSupport.getRowCount();
+    }
 
-	@Override
-	public long getRowCount() throws ReadDriverException {
-		return sqliteJdbcSupport.getRowCount();
-	}
+    @Override
+    public int getFieldWidth(int i) throws ReadDriverException {
+	return sqliteJdbcSupport.getFieldWidth(i);
+    }
 
-	@Override
-	public int getFieldWidth(int i) throws ReadDriverException {
-		return sqliteJdbcSupport.getFieldWidth(i);
-	}
-
-	@Override
-	public void close() throws SQLException {
-		sqliteJdbcSupport.close();
-		jdbcWriter.close();
-	}
+    @Override
+    public void close() throws SQLException {
+	sqliteJdbcSupport.close();
+	jdbcWriter.close();
+    }
 
 }
