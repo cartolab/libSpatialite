@@ -49,6 +49,8 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.apache.log4j.Logger;
+
 import com.hardcode.gdbms.driver.exceptions.ReadDriverException;
 import com.hardcode.gdbms.engine.values.DoubleValue;
 import com.hardcode.gdbms.engine.values.FloatValue;
@@ -61,6 +63,9 @@ import com.iver.cit.gvsig.fmap.drivers.IFeatureIterator;
 import com.iver.cit.gvsig.fmap.drivers.WKBParser3;
 
 public class SpatiaLiteFeatureIterator implements IFeatureIterator {
+
+    private static final Logger logger = Logger
+	    .getLogger(SpatiaLiteFeatureIterator.class);
 
     private static int FETCH_SIZE = 5000;
     private WKBParser3 parser = new WKBParser3();
@@ -89,8 +94,9 @@ public class SpatiaLiteFeatureIterator implements IFeatureIterator {
 	    st.execute("BEGIN");
 	} catch (SQLException e) {
 	    try {
-		st.execute("END");
+		st.execute("END TRANSACTION");
 	    } catch (SQLException e1) {
+		logger.error(e.getStackTrace(), e);
 	    }
 	    st.execute("BEGIN");
 	}
@@ -169,7 +175,7 @@ public class SpatiaLiteFeatureIterator implements IFeatureIterator {
     @Override
     public void closeIterator() throws ReadDriverException {
 	try {
-	    st.execute("END");
+	    st.execute("END TRANSACTION");
 	    st.close();
 	} catch (SQLException e) {
 	}
