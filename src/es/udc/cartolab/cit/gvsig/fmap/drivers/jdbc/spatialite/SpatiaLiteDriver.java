@@ -1,7 +1,6 @@
 package es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite;
 
 import java.awt.geom.Rectangle2D;
-import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -21,7 +20,6 @@ import java.util.Map;
 import org.apache.log4j.Logger;
 import org.sqlite.SQLiteConnection;
 import org.sqlite.core.CoreConnection;
-import org.sqlite.util.OSInfo;
 
 import com.hardcode.gdbms.driver.exceptions.InitializeWriterException;
 import com.hardcode.gdbms.driver.exceptions.ReadDriverException;
@@ -50,9 +48,7 @@ ICanReproject, IWriteable {
     private static Logger logger = Logger.getLogger(SpatiaLiteDriver.class
 	    .getName());
     public static final String NAME = "SpatiaLite JDBC Driver";
-    private static String libsPath = "gvSIG" + File.separator + "extensiones"
-	    + File.separator + "com.iver.cit.gvsig" + File.separator + "lib"
-	    + File.separator;
+
     protected static Map<String, Connection> conns = new HashMap<String, Connection>();
     protected static String latestHost = null;
     private static boolean dependenciesChecked = false;
@@ -69,7 +65,8 @@ ICanReproject, IWriteable {
     private SpatiaLiteWriter writer = new SpatiaLiteWriter();
 
     public SpatiaLiteDriver() {
-	this(true);
+	super();
+	loadSystemDependencies();
     }
 
     public static Connection getConnection(String host) {
@@ -96,22 +93,7 @@ ICanReproject, IWriteable {
 	conns.clear();
     }
 
-    public SpatiaLiteDriver(boolean checkDependencies, String libsPath) {
-	super();
-	SpatiaLiteDriver.libsPath = libsPath;
-	if (checkDependencies) {
-	    loadSystemDependencies();
-	}
-    }
-
-    public SpatiaLiteDriver(boolean checkDependencies) {
-	super();
-	if (checkDependencies) {
-	    loadSystemDependencies();
-	}
-    }
-
-    private static void loadSystemDependencies() {
+    private void loadSystemDependencies() {
 	if (!dependenciesChecked) {
 	    try {
 		Class.forName("org.sqlite.JDBC");
@@ -120,76 +102,7 @@ ICanReproject, IWriteable {
 	    }
 	    // We try to manually load the SQLite library and all the
 	    // dependencies needed by it and SpatiaLite
-	    String osName = OSInfo.getOSName(), path;
-	    if (osName.equals("Linux")) {
-		path = new File(libsPath + "libproj.so.9.1.0")
-		.getAbsolutePath();
-		System.load(path);
-		logger.info("Loaded the Proj library from: " + path);
-
-		path = new File(libsPath + "libfreexl.so.1.1.0")
-		.getAbsolutePath();
-		System.load(path);
-		logger.info("Loaded the Freexl library from: " + path);
-
-		path = new File(libsPath + "libstdc++.so.6.0.21")
-		.getAbsolutePath();
-		System.load(path);
-		logger.info("Loaded the Geos library from: " + path);
-
-		path = new File(libsPath + "libgeos-3.5.0.so")
-		.getAbsolutePath();
-		System.load(path);
-		logger.info("Loaded the Geos library from: " + path);
-
-		path = new File(libsPath + "libgeos_c.so.1.9.0")
-		.getAbsolutePath();
-		System.load(path);
-		logger.info("Loaded the Geos_c library from: " + path);
-	    }
-	    if (osName.equals("Windows")) {
-		path = new File(libsPath + "libgcc_s_dw2-1.dll")
-		.getAbsolutePath();
-		System.load(path);
-		logger.info("Loaded the GCC_s library from: " + path);
-
-		path = new File(libsPath + "libproj-9.dll").getAbsolutePath();
-		System.load(path);
-		logger.info("Loaded the Proj library from: " + path);
-
-		path = new File(libsPath + "libiconv-2.dll").getAbsolutePath();
-		System.load(path);
-		logger.info("Loaded the Iconv library from: " + path);
-
-		path = new File(libsPath + "libfreexl-1.dll").getAbsolutePath();
-		System.load(path);
-		logger.info("Loaded the Freexl library from: " + path);
-
-		path = new File(libsPath + "libstdc++-6.dll").getAbsolutePath();
-		System.load(path);
-		logger.info("Loaded the Stdc++ library from: " + path);
-
-		path = new File(libsPath + "libgeos-3-5-0.dll")
-		.getAbsolutePath();
-		System.load(path);
-		logger.info("Loaded the Geos library from: " + path);
-
-		path = new File(libsPath + "libgeos_c-1.dll").getAbsolutePath();
-		System.load(path);
-		logger.info("Loaded the Geos_c library from: " + path);
-
-		path = new File(libsPath + "liblzma-5.dll").getAbsolutePath();
-		System.load(path);
-		logger.info("Loaded the LZM Algorithm library from: " + path);
-
-		path = new File(libsPath + "zlib1.dll").getAbsolutePath();
-		System.load(path);
-		logger.info("Loaded the ZLib from: " + path);
-
-		path = new File(libsPath + "libxml2-2.dll").getAbsolutePath();
-		System.load(path);
-		logger.info("Loaded the XML library from: " + path);
-	    }
+	    new NativeDependencies().loadSystemDependencies();
 	    dependenciesChecked = true;
 	}
     }
@@ -330,7 +243,7 @@ ICanReproject, IWriteable {
 	    ((ConnectionJDBC) conn).getConnection().setAutoCommit(false);
 	    if (((ConnectionJDBC) conn).getConnection() instanceof SQLiteConnection) {
 		((SQLiteConnection) ((ConnectionJDBC) conn).getConnection())
-		.db().enable_load_extension(true);
+			.db().enable_load_extension(true);
 	    }
 	    sqlOrig = "SELECT " + getTotalFields() + " FROM "
 		    + getLyrDef().getComposedTableName() + " ";
@@ -348,42 +261,8 @@ ICanReproject, IWriteable {
 	    Statement st = ((ConnectionJDBC) conn).getConnection()
 		    .createStatement();
 	    if (loadSpatialite) {
-		String osName = OSInfo.getOSName();
-		File spatialiteLib;
-		String path;
-		if (osName.equals("Linux")) {
-		    spatialiteLib = new File(libsPath
-			    + "mod_spatialite.so.7.1.0");
-		    path = spatialiteLib.getAbsolutePath();
-		    // path = path.substring(0, path.length() - 3);
-		} else if (osName.equals("Windows")) {
-		    spatialiteLib = new File(libsPath + "mod_spatialite.dll");
-		    path = spatialiteLib.getAbsolutePath();
-
-		    /**
-		     * FIX FOR SQLITE BUG
-		     *
-		     * Recent versions of SQLite appear to have a bug where they
-		     * don't accept the Windows path separator (\) as the last
-		     * separator of an extension path. Previous separators can
-		     * be either / or \, mixed in any way.
-		     */
-		    path = path.replace("\\mod_spatialite.dll",
-			    "/mod_spatialite.dll");
-		    // path = path.substring(0, path.length() - 4);
-		} else {
-		    throw new DBException(new SQLException(
-			    "We provide no support for SpatiaLite for the OS '"
-				    + osName + "'"));
-		}
-		if (!spatialiteLib.canRead()) {
-		    throw new DBException(new SQLException(
-			    "Can't read the SpatiaLite library in '"
-				    + spatialiteLib.getAbsolutePath() + "'"));
-		}
-		String query = "SELECT load_extension('" + path + "');";
-		logger.info(query);
-		st.execute(query);
+		new NativeDependencies().loadSpatialite(((ConnectionJDBC) conn)
+			.getConnection());
 	    }
 	    rs = st.executeQuery(sqlAux + " LIMIT " + FETCH_SIZE);
 	    fetch_min = 0;
@@ -636,7 +515,7 @@ ICanReproject, IWriteable {
 		strAux = strAux
 			+ ", "
 			+ SpatiaLite
-				.escapeFieldName(lyrDef.getFieldNames()[fieldIndex]);
+			.escapeFieldName(lyrDef.getFieldNames()[fieldIndex]);
 		if (alphaNumericFieldsNeeded[i].equalsIgnoreCase(lyrDef
 			.getFieldID())) {
 		    found = true;

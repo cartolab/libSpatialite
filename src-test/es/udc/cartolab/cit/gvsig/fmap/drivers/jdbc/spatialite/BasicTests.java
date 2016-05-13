@@ -1,4 +1,4 @@
-package es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite.test;
+package es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -12,6 +12,7 @@ import java.util.Set;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.sqlite.core.CoreConnection;
 
@@ -21,16 +22,19 @@ import com.iver.cit.gvsig.fmap.drivers.ConnectionJDBC;
 import com.iver.cit.gvsig.fmap.drivers.DBException;
 import com.iver.cit.gvsig.fmap.drivers.DBLayerDefinition;
 
-import es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite.SpatiaLiteDriver;
-
 //import org.sqlite.Conn;
 
 public class BasicTests {
 
-    private static SpatiaLiteDriver driver = new SpatiaLiteDriver(true,
-	    TestUtils.libPath);
+    private static SpatiaLiteDriver driver;
     private ConnectionJDBC conn;
     private static DBLayerDefinition testLyrDef = TestUtils.getLyrDef();
+
+    @BeforeClass
+    public static void setUpBeforeClass() {
+	NativeDependencies.libsPath = TestUtils.libPath;
+	driver = new SpatiaLiteDriver();
+    }
 
     @Before
     public void createConnection() throws DBException {

@@ -1,4 +1,4 @@
-package es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite.test;
+package es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite;
 
 import java.io.File;
 

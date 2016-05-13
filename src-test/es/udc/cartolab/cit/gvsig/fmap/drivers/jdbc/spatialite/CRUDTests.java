@@ -1,4 +1,4 @@
-package es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite.test;
+package es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -33,13 +33,9 @@ import com.iver.cit.gvsig.fmap.drivers.DBLayerDefinition;
 import com.iver.cit.gvsig.fmap.drivers.IFeatureIterator;
 import com.iver.cit.gvsig.fmap.edition.IRowEdited;
 
-import es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite.SpatiaLiteDriver;
-import es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite.SpatiaLiteWriter;
-
 public class CRUDTests {
 
-    private static SpatiaLiteDriver driver = new SpatiaLiteDriver(true,
-	    TestUtils.libPath);
+    private static SpatiaLiteDriver driver;
     private SpatiaLiteWriter writer = new SpatiaLiteWriter();
     private static DBLayerDefinition testLyrDef = TestUtils.getLyrDef();
     private ConnectionJDBC conn;
@@ -49,7 +45,11 @@ public class CRUDTests {
      */
     @BeforeClass
     public static void createTestRows() throws DBException,
-    InitializeWriterException, SQLException {
+	    InitializeWriterException, SQLException {
+
+	NativeDependencies.libsPath = TestUtils.libPath;
+	driver = new SpatiaLiteDriver();
+
 	File file = new File(TestUtils.testDataPath);
 	String connectionString = driver.getConnectionString(
 		file.getAbsolutePath(), "", "", "", "");

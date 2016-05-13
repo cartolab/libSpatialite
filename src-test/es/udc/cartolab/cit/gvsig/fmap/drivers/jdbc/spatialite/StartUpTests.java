@@ -1,17 +1,15 @@
-package es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite.test;
+package es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite;
 
 import java.io.File;
 import java.sql.SQLException;
 
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.sqlite.core.CoreConnection;
 
 import com.iver.cit.gvsig.fmap.drivers.ConnectionFactory;
 import com.iver.cit.gvsig.fmap.drivers.ConnectionJDBC;
 import com.iver.cit.gvsig.fmap.drivers.DBException;
-
-import es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite.SpatiaLiteDriver;
 
 /**
  * StartUpTests
@@ -24,11 +22,12 @@ import es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite.SpatiaLiteDriver;
  */
 public class StartUpTests {
 
-    private SpatiaLiteDriver driver;
+    private static SpatiaLiteDriver driver;
 
-    @Before
-    public void createDriver() {
-	driver = new SpatiaLiteDriver(true, TestUtils.libPath);
+    @BeforeClass
+    public static void setUpBeforeClass() {
+	NativeDependencies.libsPath = TestUtils.libPath;
+	driver = new SpatiaLiteDriver();
     }
 
     @Test
