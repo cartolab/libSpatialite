@@ -43,7 +43,7 @@ import com.iver.cit.gvsig.fmap.edition.IWriteable;
 import com.iver.cit.gvsig.fmap.edition.IWriter;
 
 public class SpatiaLiteDriver extends DefaultJDBCDriver implements
-ICanReproject, IWriteable {
+	ICanReproject, IWriteable {
 
     private static Logger logger = Logger.getLogger(SpatiaLiteDriver.class
 	    .getName());
@@ -181,8 +181,7 @@ ICanReproject, IWriteable {
 	List<String> list = new ArrayList<String>();
 	try {
 	    String sql = "SELECT * FROM GEOMETRY_COLUMNS WHERE F_TABLE_NAME = ?";
-	    PreparedStatement stAux = ((ConnectionJDBC) conn).getConnection()
-		    .prepareStatement(sql);
+	    PreparedStatement stAux = getConnection(conn).prepareStatement(sql);
 	    stAux.setString(1, table_name);
 
 	    ResultSet rs = stAux.executeQuery();
@@ -223,28 +222,17 @@ ICanReproject, IWriteable {
     @Override
     public void setData(IConnection conn, DBLayerDefinition lyrDef)
 	    throws DBException {
-	this.conn = conn;
-	boolean loadSpatialite = !conns.containsValue(((ConnectionJDBC) conn)
-		.getConnection());
-	conns.put(conn.getURL()
-		.replaceFirst(getConnectionStringBeginning(), ""),
-		((ConnectionJDBC) conn).getConnection());
-	// TODO: Deberíamos poder quitar Conneciton de la llamada y meterlo
-	// en lyrDef desde el principio.
-
-	lyrDef.setConnection(conn);
-	setLyrDef(lyrDef);
-
-	getTableEPSG_and_shapeType(conn, lyrDef);
-
-	getLyrDef().setSRID_EPSG(originalEPSG);
 
 	try {
-	    ((ConnectionJDBC) conn).getConnection().setAutoCommit(false);
-	    if (((ConnectionJDBC) conn).getConnection() instanceof SQLiteConnection) {
-		((SQLiteConnection) ((ConnectionJDBC) conn).getConnection())
-			.db().enable_load_extension(true);
-	    }
+	    setConnection(conn);
+
+	    lyrDef.setConnection(conn);
+	    setLyrDef(lyrDef);
+
+	    getTableEPSG_and_shapeType(conn, lyrDef);
+
+	    getLyrDef().setSRID_EPSG(originalEPSG);
+
 	    sqlOrig = "SELECT " + getTotalFields() + " FROM "
 		    + getLyrDef().getComposedTableName() + " ";
 	    if (canReproject(strEPSG)) {
@@ -258,12 +246,8 @@ ICanReproject, IWriteable {
 		    + getLyrDef().getFieldID();
 
 	    sqlTotal = sqlAux;
-	    Statement st = ((ConnectionJDBC) conn).getConnection()
-		    .createStatement();
-	    if (loadSpatialite) {
-		new NativeDependencies().loadSpatialite(((ConnectionJDBC) conn)
-			.getConnection());
-	    }
+
+	    Statement st = getConnection(conn).createStatement();
 	    rs = st.executeQuery(sqlAux + " LIMIT " + FETCH_SIZE);
 	    fetch_min = 0;
 	    fetch_max = FETCH_SIZE - 1;
@@ -277,7 +261,7 @@ ICanReproject, IWriteable {
 	} catch (SQLException e) {
 
 	    try {
-		((ConnectionJDBC) conn).getConnection().rollback();
+		getConnection(conn).rollback();
 	    } catch (SQLException e1) {
 		logger.warn("Unable to rollback connection after problem ("
 			+ e.getMessage() + ") in setData()");
@@ -297,6 +281,29 @@ ICanReproject, IWriteable {
 
     }
 
+    protected void setConnection(IConnection conn) throws DBException,
+	    SQLException {
+	final Connection javaCon = getConnection(conn);
+	if (!(javaCon instanceof SQLiteConnection)) {
+	    throw new RuntimeException("Not a SQLiteConnection");
+	}
+	this.conn = conn;
+	boolean loadSpatialite = !conns.containsValue(javaCon);
+
+	conns.put(getHost(conn), javaCon);
+	javaCon.setAutoCommit(false);
+	((SQLiteConnection) javaCon).db().enable_load_extension(true);
+
+	if (loadSpatialite) {
+	    new NativeDependencies().loadSpatialite(javaCon);
+	}
+
+    }
+
+    private String getHost(IConnection conn) throws DBException {
+	return conn.getURL().replaceFirst(getConnectionStringBeginning(), "");
+    }
+
     @Override
     public String[] getAllFields(IConnection conn, String table_name)
 	    throws DBException {
@@ -304,7 +311,7 @@ ICanReproject, IWriteable {
 	ResultSet rs = null;
 
 	try {
-	    st = ((ConnectionJDBC) conn).getConnection().createStatement();
+	    st = getConnection(conn).createStatement();
 	    rs = st.executeQuery("SELECT * FROM \""
 		    + table_name.replace("\"", "\\\"") + "\" LIMIT 1");
 	    ResultSetMetaData rsmd = rs.getMetaData();
@@ -330,7 +337,7 @@ ICanReproject, IWriteable {
 	Statement st = null;
 	ResultSet rs = null;
 	try {
-	    st = ((ConnectionJDBC) conn).getConnection().createStatement();
+	    st = getConnection(conn).createStatement();
 	    rs = st.executeQuery("SELECT * FROM \""
 		    + table_name.replace("\"", "\\\"") + "\" LIMIT 1");
 	    ResultSetMetaData rsmd = rs.getMetaData();
@@ -515,7 +522,7 @@ ICanReproject, IWriteable {
 		strAux = strAux
 			+ ", "
 			+ SpatiaLite
-			.escapeFieldName(lyrDef.getFieldNames()[fieldIndex]);
+				.escapeFieldName(lyrDef.getFieldNames()[fieldIndex]);
 		if (alphaNumericFieldsNeeded[i].equalsIgnoreCase(lyrDef
 			.getFieldID())) {
 		    found = true;
@@ -614,7 +621,7 @@ ICanReproject, IWriteable {
 
 	try {
 
-	    Connection c = ((ConnectionJDBC) con).getConnection();
+	    Connection c = getConnection(con);
 	    PreparedStatement st = c.prepareStatement(query);
 
 	    ResultSet rs = st.executeQuery();
@@ -712,8 +719,7 @@ ICanReproject, IWriteable {
     private void getTableEPSG_and_shapeType(IConnection conn,
 	    DBLayerDefinition dbld) {
 	try {
-	    Statement stAux = ((ConnectionJDBC) conn).getConnection()
-		    .createStatement();
+	    Statement stAux = getConnection(conn).createStatement();
 
 	    String sql = "SELECT * FROM GEOMETRY_COLUMNS WHERE F_TABLE_NAME = '"
 		    + dbld.getTableName()
@@ -925,6 +931,10 @@ ICanReproject, IWriteable {
     @Override
     public IWriter getWriter() {
 	return writer;
+    }
+
+    private Connection getConnection(IConnection conn) {
+	return ((ConnectionJDBC) conn).getConnection();
     }
 
 }
