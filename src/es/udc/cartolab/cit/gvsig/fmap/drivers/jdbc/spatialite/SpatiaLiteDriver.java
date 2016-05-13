@@ -43,7 +43,7 @@ import com.iver.cit.gvsig.fmap.edition.IWriteable;
 import com.iver.cit.gvsig.fmap.edition.IWriter;
 
 public class SpatiaLiteDriver extends DefaultJDBCDriver implements
-	ICanReproject, IWriteable {
+ICanReproject, IWriteable {
 
     private static Logger logger = Logger.getLogger(SpatiaLiteDriver.class
 	    .getName());
@@ -282,7 +282,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
     }
 
     protected void setConnection(IConnection conn) throws DBException,
-	    SQLException {
+    SQLException {
 	final Connection javaCon = getConnection(conn);
 	if (!(javaCon instanceof SQLiteConnection)) {
 	    throw new RuntimeException("Not a SQLiteConnection");
@@ -292,7 +292,6 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 
 	conns.put(getHost(conn), javaCon);
 	javaCon.setAutoCommit(false);
-	((SQLiteConnection) javaCon).db().enable_load_extension(true);
 
 	if (loadSpatialite) {
 	    new NativeDependencies().loadSpatialite(javaCon);
@@ -522,7 +521,7 @@ public class SpatiaLiteDriver extends DefaultJDBCDriver implements
 		strAux = strAux
 			+ ", "
 			+ SpatiaLite
-				.escapeFieldName(lyrDef.getFieldNames()[fieldIndex]);
+			.escapeFieldName(lyrDef.getFieldNames()[fieldIndex]);
 		if (alphaNumericFieldsNeeded[i].equalsIgnoreCase(lyrDef
 			.getFieldID())) {
 		    found = true;

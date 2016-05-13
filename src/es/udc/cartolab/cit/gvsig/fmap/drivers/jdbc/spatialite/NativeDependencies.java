@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.apache.log4j.Logger;
+import org.sqlite.SQLiteConnection;
 import org.sqlite.util.OSInfo;
 
 import com.iver.cit.gvsig.fmap.drivers.DBException;
@@ -81,6 +82,9 @@ public class NativeDependencies {
 	    throw new RuntimeException("Can't read spatiaLite library: "
 		    + spatialiteLib.getAbsolutePath());
 	}
+
+	// Disabled by default http://sqlite.org/loadext.html
+	((SQLiteConnection) javaCon).db().enable_load_extension(true);
 	String query = "SELECT load_extension('" + path + "');";
 	logger.info(query);
 	Statement st = javaCon.createStatement();
