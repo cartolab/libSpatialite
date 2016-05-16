@@ -1,6 +1,7 @@
 package es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite;
 
 import java.io.File;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -46,8 +47,9 @@ IFieldManager {
 	super.initialize(lyrD);
 	this.lyrDef = (DBLayerDefinition) lyrD;
 	conex = lyrDef.getConnection();
+	Connection con = ((ConnectionJDBC) conex).getConnection();
 	try {
-	    st = ((ConnectionJDBC) conex).getConnection().createStatement();
+	    st = con.createStatement();
 	    if (bCreateTable) {
 		dropTableIfExist();
 		String sqlCreate = spatiaLite.getSqlCreateSpatialTable(lyrDef,
@@ -56,10 +58,11 @@ IFieldManager {
 		st.execute(sqlCreate);
 		String sqlAlter = spatiaLite.getSqlAddGeometryColumn(lyrDef);
 		System.out.println("sqlAlter =" + sqlAlter);
+		con.commit();
 		st.execute(sqlAlter);
-		((ConnectionJDBC) conex).getConnection().commit();
+		con.commit();
 	    }
-	    ((ConnectionJDBC) conex).getConnection().setAutoCommit(false);
+	    con.setAutoCommit(false);
 	    String table_name = lyrDef.getTableName();
 	    fieldManager = new JdbcFieldManager(
 		    ((ConnectionJDBC) conex).getConnection(), table_name);
