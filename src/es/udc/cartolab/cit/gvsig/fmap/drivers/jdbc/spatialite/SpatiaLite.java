@@ -100,7 +100,7 @@ public class SpatiaLite {
 	FieldDescription[] fieldsDescr = dbLayerDef.getFieldsDesc();
 	String resul;
 	resul = "CREATE TABLE " + dbLayerDef.getTableName() + " ( " + "\""
-		+ dbLayerDef.getFieldID() + "\"" + " serial PRIMARY KEY ";
+		+ dbLayerDef.getFieldID() + "\"" + " INTEGER PRIMARY KEY ";
 	for (int i = 0; i < dbLayerDef.getFieldNames().length; i++) {
 	    int fieldType = fieldsDescr[i].getFieldType();
 	    String strType = XTypes.fieldTypeToString(fieldType);
