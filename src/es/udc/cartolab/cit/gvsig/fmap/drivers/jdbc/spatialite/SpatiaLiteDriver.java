@@ -436,7 +436,7 @@ ICanReproject, IWriteable {
     @Override
     protected void doRelateID_FID() throws DBException {
 	try {
-	    hashRelate = new Hashtable();
+	    hashRelate = new Hashtable<Value, Integer>();
 
 	    String strSQL = "SELECT " + getLyrDef().getFieldID() + " FROM "
 		    + getLyrDef().getComposedTableName() + " "
@@ -580,37 +580,29 @@ ICanReproject, IWriteable {
 	    }
 	}
 
-	if ((index < fetch_min) || (index > fetch_max)) {
-	    // calculamos el intervalo correcto
-	    fetch_min = index;
-	    fetch_max = fetch_min + FETCH_SIZE - 1;
-	    // y cogemos ese cacho
-	    rs.close();
+	// -1 tras setData y el primer setAbsolutePosition
+	int actual_rs_row = fetch_min + rs.getRow() - 1;
 
-	    Statement st = ((ConnectionJDBC) conn).getConnection()
-		    .createStatement(ResultSet.TYPE_FORWARD_ONLY,
-			    ResultSet.CONCUR_READ_ONLY);
-
-	    rs = st.executeQuery(sqlTotal + " LIMIT " + FETCH_SIZE + " OFFSET "
-		    + fetch_min);
-	}
-	int diff = index - rs.getRow() + 1;
-	if (diff < 0) {
-	    Statement st = ((ConnectionJDBC) conn).getConnection()
-		    .createStatement(ResultSet.TYPE_FORWARD_ONLY,
-			    ResultSet.CONCUR_READ_ONLY);
-	    rs = st.executeQuery(sqlTotal + " LIMIT " + FETCH_SIZE + " OFFSET "
-		    + fetch_min);
-	    diff = index - rs.getRow() + 1;
-	    for (int i = diff; i > 0; i--) {
+	// Si hay que ir hacia adelante y ya tenemos los registros
+	if ((actual_rs_row < index) && (index < fetch_max)) {
+	    for (int i = actual_rs_row; i < index; i++) {
+		// avanzamos
 		rs.next();
 	    }
 	} else {
-	    for (int i = diff; i > 0; i--) {
-		rs.next();
-	    }
-	}
+	    // tendremos que traernos nuevos registros
+	    fetch_min = index;
+	    fetch_max = fetch_min + FETCH_SIZE - 1;
+	    rs.close();
+	    Statement st = ((ConnectionJDBC) conn).getConnection()
+		    .createStatement(ResultSet.TYPE_FORWARD_ONLY,
+			    ResultSet.CONCUR_READ_ONLY);
 
+	    rs = st.executeQuery(sqlTotal + " LIMIT " + FETCH_SIZE + " OFFSET "
+		    + fetch_min);
+	    // y avanzar hasta el primero
+	    rs.next();
+	}
     }
 
     public String getPrimaryKey(IConnection con, String table_name) {

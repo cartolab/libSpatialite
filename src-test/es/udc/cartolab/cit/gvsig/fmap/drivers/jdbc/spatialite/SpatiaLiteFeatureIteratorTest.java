@@ -84,7 +84,7 @@ public class SpatiaLiteFeatureIteratorTest {
      *  + draw <- FLyVect.draw. No pasa nunca.
      *  + process <- Geoprocesos fundamentalmente. Poco importante
      *  + queryByRect  <- FLyVect queryByRect y queryByPoint
-     * 
+     *
      * FLyrVect
      *  + _draw <- FLyVect.draw cuando la strategy es null
      *  + _print <- .. <- FFrameView.draw
@@ -141,16 +141,41 @@ public class SpatiaLiteFeatureIteratorTest {
     }
 
     @Test
-    public void testReadDirectly() throws Exception {
+    public void testReadDirectlyOneFetch() throws Exception {
 	FLyrVect layer = getLayer();
 	SelectableDataSource rs = layer.getRecordset();
 
 	IntValue fieldValue = (IntValue) rs.getFieldValue(5, 2);
 	assertEquals(5, fieldValue.intValue());
 
-	// TODO: No está funcionando con layers de más de 5000
-	fieldValue = (IntValue) rs.getFieldValue(5002, 2);
-	assertEquals(5002, fieldValue.intValue());
+	fieldValue = (IntValue) rs.getFieldValue(10, 2);
+	assertEquals(10, fieldValue.intValue());
+
+	fieldValue = (IntValue) rs.getFieldValue(1, 2);
+	assertEquals(1, fieldValue.intValue());
+
+	fieldValue = (IntValue) rs.getFieldValue(0, 2);
+	assertEquals(0, fieldValue.intValue());
+
+	fieldValue = (IntValue) rs.getFieldValue(15, 2);
+	assertEquals(15, fieldValue.intValue());
+    }
+
+    public void testReadDirectlySeveralFetch() throws Exception {
+	FLyrVect layer = getLayer();
+	SelectableDataSource rs = layer.getRecordset();
+
+	IntValue fieldValue = (IntValue) rs.getFieldValue(5000, 2);
+	assertEquals(5000, fieldValue.intValue());
+
+	fieldValue = (IntValue) rs.getFieldValue(0, 2);
+	assertEquals(0, fieldValue.intValue());
+
+	fieldValue = (IntValue) rs.getFieldValue(15, 2);
+	assertEquals(15, fieldValue.intValue());
+
+	fieldValue = (IntValue) rs.getFieldValue(10000, 2);
+	assertEquals(10000, fieldValue.intValue());
     }
 
     private FLyrVect getLayer() throws Exception {
