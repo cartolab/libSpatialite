@@ -728,7 +728,7 @@ ICanReproject, IWriteable {
 	    ResultSet rs = stAux.executeQuery(sql);
 	    if (rs.next()) {
 		originalEPSG = "" + rs.getInt("SRID");
-		String geometryType = rs.getString("TYPE");
+		String geometryType = rs.getString("geometry_type");
 		int shapeType = FShape.MULTI;
 		if (geometryType.compareToIgnoreCase("POINT") == 0) {
 		    shapeType = FShape.POINT;
