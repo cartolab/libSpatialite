@@ -1,49 +1,34 @@
-<project name="libSpatialite" default="generate-without-source-and-test" basedir=".">
-    <description>
-    	Users management and DB Connection extension
-    </description>
+<project name="libSpatialite" default="generate-without-source" basedir=".">
   <!-- set global properties for this build -->
   <property name="src" location="src"/>
-  <property name="src-test" location="src-test"/>
   <property name="build" location="bin"/>
-  <property name="build-test" location="bin-test"/>
   <property name="dist"  location="dist"/>
   <property name="extensionsDir" location="../_fwAndami/gvSIG/extensiones"/>
   <property name="mainplugin" value="com.iver.cit.gvsig"/>
   <property name="spatialitejar" value="sqlite_spatial"/>
   <property name="sqlitejar" value="sqlite"/>
   <property name="sqlitelibjar" value="sqlite-jdbc-3.9.1-SNAPSHOT"/>
-  <property name="plugin" value="es.udc.cartolab.gvsig.sqliteUsers"/>
   <property name="andami" location="../_fwAndami" />
   <property name="drivers-dir" location="${extensionsDir}/${mainplugin}/drivers" />
   <property name="lib-dir" location="${extensionsDir}/${mainplugin}/lib"/>
   <property name="lib" location="lib"/>
-  <property name="compile-classpath" location=""/>
+  
   <import file="../binaries/ant/utilities.xml" />
-	
-  <path id="junit.classpath">
-    <pathelement location="../binaries/ant/gvsig-ant-junit.jar" />
-    <pathelement location="${lib}/junit-4.11.jar" />
-    <pathelement location="${lib}/hamcrest-core-1.3.jar" />
-  </path>
+
 
 	<target name="batch-build" depends="init, compile, generate-without-source">
 	</target>
+	
   <target name="init">
     <tstamp/>
     <mkdir dir="${build}"/>
     <mkdir dir="${dist}/lib"/>
-
   </target>
 
-	  <target name="generate-without-source-and-test"
-	  	description="Generates the distribution without the source file and executes all the included tests"
-	  	depends="generate-without-source, test" />
 
   <target name="generate-without-source" depends="init">
     
   	  	
-    <!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
 	<copy todir="${dist}/lib" overwrite="true">
   	    	<fileset dir="lib" includes="*"/>
   	</copy>
@@ -83,25 +68,11 @@
   </target>
 
 
-	<target name="compile" description="compile the source">
-			<loadEclipseClasspath project="${basedir}" />
-			<gvSIG-javac classpath="${eclipseClasspath}" />
-		</target>
-
-
-	<target name="compile-tests" description="compile the tests source" >
-		<!-- Compile the Java code from ${src} to ${build} -->
+	<target name="compile">
 		<loadEclipseClasspath project="${basedir}" />
-		<delete dir="${build-test}" />
-		<mkdir dir="${build-test}" />
-		<echo>${eclipseClasspath}</echo>
-		<javac srcdir="${src-test}"
-			destdir="${build-test}"
-			debug="${debug}"
-			debuglevel="${debuglevel}"
-			classpath="${eclipseClasspath}"
-			includeantruntime="false"/>
+		<gvSIG-javac classpath="${eclipseClasspath}" />
 	</target>
+
 
 	<target name="copy-driver-to-andami">
 	    <mkdir dir="${drivers-dir}/jdbc_spatial"/>
@@ -124,31 +95,10 @@
 	</target>
 
 
-	<target name="clean"
-	        description="clean up" >
-	    <!-- Delete the ${build} and ${dist} directory trees -->
+	<target name="clean">
 		<delete dir="${dist}"/>
 		<delete dir="${build}"/>
 	</target>
 
-	<target name="run-tests">
-		<loadEclipseClasspath project="${basedir}" />
-		<junit printsummary="on" filtertrace="off">
-		  <classpath refid="junit.classpath"/>
-		  <classpath>
-		  	<pathelement path="${build-test}"/>
-		  	<pathelement path="${build}"/>
-		  	<pathelement path="${eclipseClasspath}"/>
-		  </classpath>
-			<test name="es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite.test.TestSuite"/>
-			<!-- Formatter for printing all outputs --> 
-			<formatter
-		    type="brief"
-		    usefile="false"
-		    />
-		</junit>
-	</target>
-
-	<target name="test" depends="compile-tests, run-tests"/>
 </project>
 
