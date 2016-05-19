@@ -67,7 +67,7 @@ public class SpatiaLiteFeatureIterator implements IFeatureIterator {
     private static final Logger logger = Logger
 	    .getLogger(SpatiaLiteFeatureIterator.class);
 
-    private static int FETCH_SIZE = 5000;
+    public final static int FETCH_SIZE = 5000;
     private WKBParser3 parser = new WKBParser3();
     private ResultSetMetaData metaData = null;
     ResultSet rs;

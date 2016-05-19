@@ -1,6 +1,9 @@
 package es.udc.cartolab.cit.gvsig.fmap.drivers.jdbc.spatialite;
 
 import java.io.File;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Types;
 
 import com.hardcode.gdbms.engine.values.Value;
@@ -132,4 +135,21 @@ public abstract class TestUtils {
 
     }
 
+    public static void populateTable(Connection con, int nrows)
+	    throws SQLException {
+	String sql = "insert into test (entero, geom) values (?, MakePoint(?, ?, 32616))";
+	PreparedStatement prep = con.prepareStatement(sql);
+
+	int value = 0;
+	for (int i = 0; i < nrows; i++) {
+	    prep.setInt(1, value++);
+	    prep.setDouble(2, Math.random() * 1000);
+	    prep.setDouble(3, Math.random() * 1000);
+	    prep.addBatch();
+	}
+
+	prep.executeBatch();
+	con.commit();
+	prep.close();
+    }
 }
