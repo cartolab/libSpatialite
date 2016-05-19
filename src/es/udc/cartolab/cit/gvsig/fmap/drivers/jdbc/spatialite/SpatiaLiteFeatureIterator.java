@@ -90,18 +90,7 @@ public class SpatiaLiteFeatureIterator implements IFeatureIterator {
 
 	st = conn.createStatement();
 
-	try {
-	    st.execute("BEGIN");
-	} catch (SQLException e) {
-	    try {
-		st.execute("END TRANSACTION");
-	    } catch (SQLException e1) {
-		logger.error(e.getStackTrace(), e);
-	    }
-	    st.execute("BEGIN");
-	}
-
-	System.out.println(sql + " LIMIT " + FETCH_SIZE + ";");
+	// System.out.println(sql + " LIMIT " + FETCH_SIZE + ";");
 	rs = st.executeQuery(sql + " LIMIT " + FETCH_SIZE + ";");
 	this.sql = sql;
 	numColumns = rs.getMetaData().getColumnCount();
@@ -175,7 +164,6 @@ public class SpatiaLiteFeatureIterator implements IFeatureIterator {
     @Override
     public void closeIterator() throws ReadDriverException {
 	try {
-	    st.execute("END TRANSACTION");
 	    st.close();
 	} catch (SQLException e) {
 	}
