@@ -611,11 +611,13 @@ ICanReproject, IWriteable {
 
 	// -1 tras setData y el primer setAbsolutePosition
 	int actual_rs_row = fetch_min + rs.getRow() - 1;
-
-	// Si hay que ir hacia adelante y ya tenemos los registros
-	if ((actual_rs_row < index) && (index < fetch_max)) {
+	if (actual_rs_row == index) {
+	    // ya estamos en la fila adecuada
+	    return;
+	} else if ((actual_rs_row < index) && (index < fetch_max)) {
+	    // Si hay que ir hacia adelante y ya tenemos los registros,
+	    // avanzamos las posiciones necesarias
 	    for (int i = actual_rs_row; i < index; i++) {
-		// avanzamos
 		rs.next();
 	    }
 	} else {
