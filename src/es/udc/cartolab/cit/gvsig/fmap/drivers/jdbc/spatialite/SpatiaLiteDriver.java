@@ -63,6 +63,7 @@ ICanReproject, IWriteable {
     private String strEPSG = null;
     private SpatiaLite spatiaLite = new SpatiaLite();
     private SpatiaLiteWriter writer = new SpatiaLiteWriter();
+    private int[] fieldTypes;
 
     public SpatiaLiteDriver() {
 	super();
@@ -252,6 +253,10 @@ ICanReproject, IWriteable {
 	    fetch_min = 0;
 	    fetch_max = FETCH_SIZE - 1;
 	    metaData = rs.getMetaData();
+	    fieldTypes = new int[metaData.getColumnCount()];
+	    for (int i = 0; i < fieldTypes.length; i++) {
+		fieldTypes[i] = metaData.getColumnType(i + 1);
+	    }
 	    doRelateID_FID();
 
 	    writer.setCreateTable(false);
@@ -937,4 +942,76 @@ ICanReproject, IWriteable {
 	return ((ConnectionJDBC) conn).getConnection();
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see com.hardcode.gdbms.engine.data.driver.ReadAccess#getFieldType(int)
+     */
+    @Override
+    public int getFieldType(int idField) throws ReadDriverException {
+
+	// Nos saltamos el campo de geometry
+	int i = idField + 1;
+
+	int type = fieldTypes[i];
+	// int type = metaData.getColumnType(i);
+	if (type == Types.VARCHAR) {
+	    return Types.VARCHAR;
+	}
+	if (type == Types.FLOAT) {
+	    return Types.FLOAT;
+	}
+	if (type == Types.REAL) {
+	    return Types.FLOAT;
+	}
+	if (type == Types.DOUBLE) {
+	    return Types.DOUBLE;
+	}
+	if (type == Types.INTEGER) {
+	    return Types.INTEGER;
+	}
+	if (type == Types.SMALLINT) {
+	    return Types.SMALLINT;
+	}
+	if (type == Types.TINYINT) {
+	    return Types.TINYINT;
+	}
+	if (type == Types.BIGINT) {
+	    return Types.BIGINT;
+	}
+	if (type == Types.BIT) {
+	    return Types.BIT;
+	}
+	if (type == Types.DATE) {
+	    return Types.DATE;
+	}
+	if (type == Types.DECIMAL) {
+	    return Types.DOUBLE;
+	}
+	if (type == Types.NUMERIC) {
+	    return Types.DOUBLE;
+	}
+	if (type == Types.DATE) {
+	    return Types.DATE;
+	}
+	if (type == Types.TIME) {
+	    return Types.TIME;
+	}
+	if (type == Types.TIMESTAMP) {
+	    return Types.TIMESTAMP;
+	}
+	if (type == Types.NUMERIC) {
+	    return Types.DOUBLE;
+	}
+	if (type == Types.BOOLEAN) {
+	    return Types.BOOLEAN;
+	}
+	if (type == Types.CHAR) {
+	    return Types.CHAR;
+	}
+	logger.warn(String.format(
+		"Tipo de datos no reconocido. Capa: %s, Campo: %d",
+		this.getTableName(), idField));
+	return Types.OTHER;
+    }
 }
