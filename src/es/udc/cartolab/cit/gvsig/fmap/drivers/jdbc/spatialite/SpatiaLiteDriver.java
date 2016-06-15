@@ -300,6 +300,7 @@ ICanReproject, IWriteable {
 
 	if (loadSpatialite) {
 	    new NativeDependencies().loadSpatialite(javaCon);
+	    // enableForeignKeys(javaCon);
 	}
 
     }
@@ -307,6 +308,29 @@ ICanReproject, IWriteable {
     private String getHost(IConnection conn) throws DBException {
 	return conn.getURL().replaceFirst(getConnectionStringBeginning(), "");
     }
+
+    // private void enableForeignKeys(Connection javaCon) throws DBException {
+    // // fpuga. This is done in the forked version of the sqlite-jdbc.jar
+    // Statement st = null;
+    // ResultSet rs = null;
+    //
+    // try {
+    // st = javaCon.createStatement();
+    //
+    // st.executeUpdate("PRAGMA foreign_keys=1;");
+    //
+    // rs = st.executeQuery("PRAGMA foreign_keys;");
+    // rs.next();
+    // System.out.println(rs.getBoolean(1));
+    //
+    // } catch (SQLException e) {
+    // closeConnection(conn);
+    // throw new DBException(e);
+    // } finally {
+    // closeResultSet(rs);
+    // closeStatement(st);
+    // }
+    // }
 
     @Override
     public String[] getAllFields(IConnection conn, String table_name)
