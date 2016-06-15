@@ -712,35 +712,44 @@ ICanReproject, IWriteable {
 	try {
 	    Statement stAux = getConnection(conn).createStatement();
 
-	    String sql = "SELECT * FROM GEOMETRY_COLUMNS WHERE F_TABLE_NAME = '"
+	    String sql = "SELECT * FROM geometry_columns WHERE f_table_name = '"
 		    + dbld.getTableName()
-		    + "' AND F_GEOMETRY_COLUMN = '"
+		    + "' AND f_geometry_column = '"
 		    + dbld.getFieldGeometry() + "'";
 
 	    ResultSet rs = stAux.executeQuery(sql);
 	    if (rs.next()) {
 		originalEPSG = "" + rs.getInt("SRID");
-		String geometryType = rs.getString("geometry_type");
+		// String geometryType = rs.getString("type");
+		// https://www.gaia-gis.it/fossil/libspatialite/wiki?name=switching-to-4.0
+		int geometryType = rs.getInt("geometry_type");
 		int shapeType = FShape.MULTI;
-		if (geometryType.compareToIgnoreCase("POINT") == 0) {
+		switch (geometryType) {
+		case 1:
 		    shapeType = FShape.POINT;
-		} else if (geometryType.compareToIgnoreCase("LINESTRING") == 0) {
+		    break;
+		case 2:
+		case 5:
 		    shapeType = FShape.LINE;
-		} else if (geometryType.compareToIgnoreCase("POLYGON") == 0) {
+		    break;
+		case 6:
+		case 3:
 		    shapeType = FShape.POLYGON;
-		} else if (geometryType.compareToIgnoreCase("MULTIPOINT") == 0) {
+		    break;
+		case 4:
 		    shapeType = FShape.MULTIPOINT;
-		} else if (geometryType.compareToIgnoreCase("MULTILINESTRING") == 0) {
-		    shapeType = FShape.LINE;
-		} else if (geometryType.compareToIgnoreCase("MULTILINESTRINGM") == 0) {
-		    shapeType = FShape.LINE | FShape.M;
-		} else if (geometryType.compareToIgnoreCase("MULTIPOLYGON") == 0) {
-		    shapeType = FShape.POLYGON;
+		    break;
+		case 7:
+		    shapeType = FShape.MULTI;
+		    break;
+		default:
+		    logger.warn("No supported geometry type or coord_dimension");
 		}
+
 		dbld.setShapeType(shapeType);
 
-		int dimension = rs.getString("COORD_DIMENSION").length();
-		dbld.setDimension(dimension);
+		// int dimension = rs.getString("COORD_DIMENSION").length();
+		dbld.setDimension(2);
 
 	    } else {
 		originalEPSG = "-1";
