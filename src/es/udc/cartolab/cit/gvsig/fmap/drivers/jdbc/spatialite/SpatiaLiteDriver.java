@@ -600,7 +600,7 @@ ICanReproject, IWriteable {
 
     private void setAbsolutePosition(int index) throws SQLException {
 
-	if (rs == null) {
+	if ((rs == null) || rs.isClosed()) {
 	    try {
 		reload();
 	    } catch (Exception e) {

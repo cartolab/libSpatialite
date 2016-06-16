@@ -28,6 +28,7 @@ public class SQLiteJDBCSupport implements ReadAccess {
     private String sql = null;
 
     protected SQLiteJDBCSupport(ResultSet r, Connection con, String sql) {
+	rowCount = -1;
 	this.conn = con;
 	this.sql = sql;
 	resultSet = r;
