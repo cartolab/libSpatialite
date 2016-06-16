@@ -48,8 +48,13 @@ public class SQLiteJDBCSupport implements ReadAccess {
 			ResultSet.CONCUR_READ_ONLY).executeQuery(sql);
 		curIndex = 0;
 	    }
-	    while ((curIndex < rowIndex) && resultSet.next()) {
-		curIndex++;
+	    while (curIndex < rowIndex) {
+		boolean notAfterLastRow = resultSet.next();
+		if (notAfterLastRow) {
+		    curIndex++;
+		} else {
+		    throw new RuntimeException("After last row");
+		}
 	    }
 
 	    int type = resultSet.getMetaData().getColumnType(fieldId);
@@ -199,28 +204,33 @@ public class SQLiteJDBCSupport implements ReadAccess {
     }
 
     @Override
+    // FIXME. fpuga. 20160615. This value should be cached, but, if there are fk
+    // in alphanumeric tables, so when a record in a geometric table deletes a
+    // record in an alphanumeric table there is no easy way to relaunch the
+    // rowCount calculation. So take care to try to call getRowCount as few
+    // times as possible
     public long getRowCount() throws ReadDriverException {
 	try {
 	    if (conn.isClosed()) {
 		return 0;
 	    }
+
 	    resultSet = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY,
 		    ResultSet.CONCUR_READ_ONLY).executeQuery(sql);
-	    if (rowCount == -1) {
-		int n = 0;
-		while (resultSet.next()) {
-		    n++;
-		}
-		rowCount = n;
+	    int n = 0;
+	    while (resultSet.next()) {
+		n++;
 	    }
-	    // We execute the statement again as they are forward only and the
+	    rowCount = n;
+	    // We execute the statement again as they are forward only and
+	    // the
 	    // previous one has already navigated the whole table
 	    resultSet = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY,
 		    ResultSet.CONCUR_READ_ONLY).executeQuery(sql);
-	    return rowCount;
 	} catch (SQLException e) {
 	    throw new RuntimeException(e);
 	}
+	return rowCount;
     }
 
     @Override
