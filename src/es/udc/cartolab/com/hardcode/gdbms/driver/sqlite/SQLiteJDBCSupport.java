@@ -172,9 +172,11 @@ public class SQLiteJDBCSupport implements ReadAccess {
 	    return resultSet.getMetaData().getColumnCount();
 	} catch (SQLException e) {
 	    try {
-		newJDBCSupport(conn, sql);
+		logger.warn(e);
+		resultSet = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY,
+			ResultSet.CONCUR_READ_ONLY).executeQuery(sql);
 		return resultSet.getMetaData().getColumnCount();
-	    } catch (SQLException e1) {
+	    } catch (Exception e1) {
 		throw new ReadDriverException("JDBC", e);
 	    }
 	}
@@ -184,9 +186,11 @@ public class SQLiteJDBCSupport implements ReadAccess {
     public String getFieldName(int fieldId) throws ReadDriverException {
 	try {
 	    return resultSet.getMetaData().getColumnName(fieldId + 1);
-	} catch (SQLException e) {
+	} catch (Exception e) {
 	    try {
-		newJDBCSupport(conn, sql);
+		logger.warn(e);
+		resultSet = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY,
+			ResultSet.CONCUR_READ_ONLY).executeQuery(sql);
 		return resultSet.getMetaData().getColumnName(fieldId + 1);
 	    } catch (SQLException e1) {
 		throw new ReadDriverException("JDBC", e);
@@ -225,7 +229,9 @@ public class SQLiteJDBCSupport implements ReadAccess {
 	    return resultSet.getMetaData().getColumnType(i + 1);
 	} catch (SQLException e) {
 	    try {
-		newJDBCSupport(conn, sql);
+		logger.warn(e);
+		resultSet = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY,
+			ResultSet.CONCUR_READ_ONLY).executeQuery(sql);
 		return resultSet.getMetaData().getColumnType(i + 1);
 	    } catch (SQLException e1) {
 		throw new ReadDriverException("JDBC", e);
@@ -261,10 +267,13 @@ public class SQLiteJDBCSupport implements ReadAccess {
 	int width;
 	try {
 	    width = resultSet.getMetaData().getColumnDisplaySize(i + 1);
-	} catch (SQLException e) {
+	} catch (Exception e) {
 	    try {
-		newJDBCSupport(conn, sql);
+		logger.warn(e);
+		resultSet = conn.createStatement(ResultSet.TYPE_FORWARD_ONLY,
+			ResultSet.CONCUR_READ_ONLY).executeQuery(sql);
 		width = resultSet.getMetaData().getColumnDisplaySize(i + 1);
+
 	    } catch (SQLException e1) {
 		throw new ReadDriverException("JDBC", e);
 	    }
