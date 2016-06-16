@@ -1,6 +1,7 @@
-v2016xxxx
+v20160616
 
 * Adds a doc analyzing improvements in performance and stability
 * Improves the documentation of the project
 * Syncs sqlite-jdbc and the native libraries with latest available version
 * Modifies the portable app where is deployed to use latest version of the 1.6 jre and targeting bytecode to 1.6
+* Several bugfixes in the code

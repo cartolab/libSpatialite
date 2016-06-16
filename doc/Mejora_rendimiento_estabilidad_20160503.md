@@ -74,6 +74,9 @@ La versión de [spatialite disponible para la última LTS](http://packages.ubunt
 
 Tras efecutar varios tests de forma satisfactoria se actualizan las librerías nativas de gvSIG-libSpatialite a la última versión estable disponible (4.3.0a)
 
+### Actualización del código a la nueva versión. la base de datos
+
+Hay [cambios en la estructura de los metadatos](https://www.gaia-gis.it/fossil/libspatialite/wiki?name=switching-to-4.0) que usa spatialite para funcionar de la versión 3 a la 4. Se sigue el manual de migración para actualizar el código de la forma que se indica.
 
 
 ## Máquina virtual de Java
@@ -90,4 +93,11 @@ Se [actualiza](https://github.com/cartolab/create-gvsig-portable/commit/0b07758e
 El bytecode generado para la jre de las aplicaciones portables de los proyectos que usaban el driver (gvSIG-PMF y gvSIG-Fonsagua fundamentalmente) era compilado contra la versión 1.5 de la máquina virtual por motivos de compatibilidad. Tras efectuar varios tests se decide generar bytecode con target para la [1.6 -v50.0-](https://blogs.oracle.com/darcy/entry/source_target_class_file_version). No se aprecían mejoras de rendimiento pero tampoco ningún error y se prefiere mantener todo el sistema lo más actualizado posible.
 
 Se [actualiza](https://github.com/cartolab/create-gvsig-portable/commit/6bb7b8eb875c27d059bf0a2fb282b75cd823ee9e) el sistema de creación de portables para usar el nuevo target.
+
+
+## Arreglos de código
+
+* Se realizan varios cambios relativos en el código para opmizar el acceso como cachear algunas llamadas comunes, como los tipos de datos de las columnas
+* También se realizan bastantes mejoras referidas al arreglo de bugs
+* Se activa las claves foráneas por defecto al acceder a la base de datos para mejorar la integridad de los datos
 
